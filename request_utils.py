@@ -20,6 +20,8 @@ class request:
         #### is respecting the end of the queue, i.e., the last element slot. This makes
         #### is easier to use this position as a notion of priority in the event priority queue.
         self.pos = -1
+        #### The request's hop number in its communication pattern.
+        self.hop = 0
         #### Does this request need a response? This could be set via comparing
         #### the first and final elements of the request's communication pattern.
         self.requires_response = False

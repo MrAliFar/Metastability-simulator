@@ -5,15 +5,18 @@ import logging as lg
 import debug_utils
 
 #### Priorities
-CLIENT_REQUEST_PRIORITY = 50
-SENDING_PRIORITY = 40
+CLIENT_REQUEST_PRIORITY = 60
+SENDING_PRIORITY = 50
+RECEIVING_PRIORITY = 40
 PENDING_SERVE_PRIORITY = 30
 REQUEST_SERVE_PRIORITY = 20
+MEASUREMENT_PRIORITY = 10
 DUMMY = 0
 
 #### Event types
 MEASUREMENT = "Measurement"
 SEND = "Send"
+RECEIVE = "Receive"
 CHECK_TIMEOUT = "Check_timeout"
 SERVE = "Serve"
 FAILURE = "Failure"
@@ -35,6 +38,7 @@ class event:
         self.agent = _agent
         #### The request attached to the event.
         self.request = _request
+        #### TODO: Does the hop number belong here? Isn't it better to put it in the requests?
         #### If the event is a part of a communication pattern, this field tells us the
         #### hop number.
         self.hop = 0
@@ -118,7 +122,17 @@ def issue_client_events(_events, _reqs):
         insert(_events[req.time_slot], event(CLIENT_REQUEST_PRIORITY, req.time_slot, CLIENT_REQUEST, req.pattern[0], -1, req))
     #return events
 
-def handle_event(_ev, _syst, _cur_time, _sim_len):
+def issue_measurement_events(_events):
+    for i in range(len(_events)):
+        meas_event = event(MEASUREMENT_PRIORITY,
+                           i,
+                           MEASUREMENT,
+                           -1,
+                           -1,
+                           -1)
+        insert(_events, meas_event)
+
+def handle_event(_ev, _syst, _cur_time, _network_delay, _sim_len):
     """
     The general event handler. It receives an event and a system, and calls the appropriate
     handler function according to the event's type.
@@ -130,54 +144,171 @@ def handle_event(_ev, _syst, _cur_time, _sim_len):
         - ?
     """
     if _ev.type == CLIENT_REQUEST:
-        return handle_client_request(_ev, _syst, _cur_time, _sim_len)
+        return handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len)
     elif _ev.type == SERVE:
-        return handle_serve_request(_ev, _syst, _cur_time, _sim_len)
+        return handle_serve_event(_ev, _syst)
+    elif _ev.type == RECEIVE:
+        return handle_receive_event(_ev, _syst)
+    elif _ev.type == SEND:
+        return handle_send_event(_ev, _syst, _network_delay, _sim_len)
+    elif _ev.type == MEASUREMENT:
+        return handle_measurement_event(_syst)
 
-def handle_client_request(_ev, _syst, _cur_time, _sim_len):
-    #### Put the request inside an agent from the corresponding service. If no agent is
-    #### able to handle the request, i.e., all agents have full input queues, drop the
-    #### request.
-    empty_agent_found = False
+def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
+    #### Select a random agent from the corresponding service.
     agt_ids = list(range(len(_syst.services[_ev.request.pattern[0]].agents)))
-    
-    #### Keep randomly looking for an agent that has open capacity in its input queue.
-    #### Then assign a serving event to that agent, corresponding to the request.
-    while not empty_agent_found:
-        agt_id = choice(agt_ids)
-        if _syst.services[_ev.request.pattern[0]].agents[agt_id].in_queue.full():
-            agt_ids.remove(agt_id)
+    agt_id = choice(agt_ids)
+            
+    if _cur_time + _network_delay > _sim_len-1:
+        #### -1 designates that the event belongs to a time after the simulation
+        #### length, and we do not have to consider it.
+        #### TODO: Does returning -1 universally capture everything?
+        return -1
+    else:
+        #### The new receiving event corresponding to the request.
+        new_event = event(
+            RECEIVING_PRIORITY,
+            _cur_time + _network_delay,
+            RECEIVE,
+            _ev.request.pattern[0],
+            agt_id,
+            _ev.request
+        )
+        #debug_utils.print_unwrapped([new_event])
+        return [new_event]
+
+def handle_serve_event(_ev, _syst):
+    #### Might need to add a pending request in the pending queue.
+    out_queue_is_full = False
+    new_event = -1
+    leftover_serve_event = -1
+    while not out_queue_is_full:
+        if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
+            out_queue_is_full = True
             continue
         else:
-            empty_agent_found = True
-            #### The request's position in the agent's input queue. This position is relative to the
-            #### last element index. This makes it easier to use the position as a notion of priority.
-            _ev.request.pos = _syst.services[_ev.request.pattern[0]].agents[agt_id].in_queue.maxsize - _syst.services[_ev.request.pattern[0]].agents[agt_id].in_queue.qsize()
-            _syst.services[_ev.request.pattern[0]].agents[agt_id].in_queue.put(_ev.request)
-            incr = _syst.services[_ev.request.pattern[0]].agents[agt_id].in_queue.qsize() // _syst.services[_ev.request.pattern[0]].agents[agt_id].srvc_rate
-            if _cur_time + incr > _sim_len-1:
-                #### -1 designates that the event belongs to a time after the simulation
-                #### length, and we do not have to consider it.
-                return -1
-            else:
-                #### The new serving event corresponding to the request.
-                new_event = event(
-                    REQUEST_SERVE_PRIORITY,
-                    _cur_time + incr,
-                    SERVE,
-                    _ev.request.pattern[0],
-                    agt_id,
-                    _ev.request
-                )
-                #debug_utils.print_unwrapped([new_event])
-                return new_event
-    #### Add a tentative serving event for the request, assuming that the pending queue
-    #### of the chosen agent will remain empty until that time.
+            in_queue_is_empty = False
+            while not in_queue_is_empty:
+                if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
+                    in_queue_is_empty = True
+                    continue
+                else:
+                    for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate):
+                        #### TODO: We need this request to handle timeouts. For now, we do not have timeouts.
 
-def handle_serve_request(_ev, _syst, _cur_time, _sim_len):
-    #### Might need to add a pending request in the pending queue.
-    if _syst.services[_ev.request.pattern[_ev.request.hop]].agents[_ev.agent]
+                        #### Get the next request in the queue.
+                        #lg.info(f"Serve--Get - Input queue of agent {_ev.agent} in service {_ev.srvc}")
+                        req = _syst.services[_ev.srvc].agents[_ev.agent].in_queue.get()
+                        if not req.hop == len(req.pattern)-1:
+                            if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
+                                new_event = event(SENDING_PRIORITY,
+                                                _ev.time,
+                                                SEND,
+                                                _ev.srvc,
+                                                _ev.agent,
+                                                -1)
+                                _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time] = True
+                            #### Put the request in the output queue.
+                            #lg.info(f"Serve--Put - Output queue of agent {_ev.agent} in service {_ev.srvc}")
+                            _syst.services[_ev.srvc].agents[_ev.agent].out_queue.put(req)
+                        else:
+                            #### If the request is in its final hop, then no need to create
+                            #### a send event.
+
+                            #### TODO: Check this!
+                            del req
+                        if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
+                            in_queue_is_empty = True
+                            out_queue_is_full = True
+                            break
+                        if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
+                            in_queue_is_empty = True
+                            out_queue_is_full = True
+                            break
+                    in_queue_is_empty = True
+                    out_queue_is_full = True
+        #out_queue_is_full = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full()
+    #### If there are requests remaining in the input queue, the agent should
+    #### serve at the next time slot.
+    if not _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
+        if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
+            leftover_serve_event = event(REQUEST_SERVE_PRIORITY,
+                                         _ev.time + 1,
+                                         SERVE,
+                                         _ev.srvc,
+                                         _ev.agent,
+                                         -1)
+            _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time + 1] = True
+    return [new_event, leftover_serve_event]
+
+
+def handle_receive_event(_ev, _syst):
+    #### If the request does not have an agent specified, then this handler chooses
+    #### a random agent from the corresponding agent, and assigns the event to this
+    #### randomly selected agent.
+    if _ev.agent == "Random":
+        agt_ids = list(range(len(_syst.services[_ev.srvc].agents)))
+        _ev.agent = choice(agt_ids)
+    
+    #### Check to see whether the request has to be dropped.
+    if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.full():
+        #### TODO: Handle dropping.
+        lg.info(f"request dropped: {vars(_ev.request)}")
+        return -1
+    else:
+        #### The request's position in the agent's input queue. This position is relative to the
+        #### last element index. This makes it easier to use the position as a notion of priority.
+        _ev.request.pos = _syst.services[_ev.srvc].agents[_ev.agent].in_queue.maxsize - _syst.services[_ev.srvc].agents[_ev.agent].in_queue.qsize()
+        #lg.info(f"Receive--Put - Input queue of agent {_ev.agent} in service {_ev.srvc}")
+        _syst.services[_ev.srvc].agents[_ev.agent].in_queue.put(_ev.request)
+        if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
+            new_event = event(REQUEST_SERVE_PRIORITY,
+                              _ev.time,
+                              SERVE,
+                              _ev.srvc,
+                              _ev.agent,
+                              -1)
+            _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time] = True
+            return [new_event]
+        else:
+            #### TODO: Should returning -1 universally capture everything?
+            return -1
+
+def handle_send_event(_ev, _syst, _network_delay, _sim_len):
+    #### We have assumed that the network delay is the same for every transmission
+    if _ev.time + _network_delay > _sim_len - 1:
+        return -1
+    out_queue_is_empty = False
+    new_events = []
+    while not out_queue_is_empty:
+        for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].send_rate):
+            #lg.info(f"Send--Get - Input queue of agent {_ev.agent} in service {_ev.srvc}")
+            req = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.get()
+            req.hop = req.hop + 1
+            new_event = event(RECEIVING_PRIORITY,
+                              _ev.time + _network_delay,
+                              RECEIVE,
+                              req.pattern[req.hop],
+                              "Random",
+                              req)
+            new_events.append(new_event)
+            if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():
+                out_queue_is_empty = True
+                break
+        out_queue_is_empty = True
+    if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():
+        if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
+            left_over_send_event = event(SENDING_PRIORITY,
+                                         _ev.time + 1,
+                                         SEND,
+                                         _ev.srvc,
+                                         _ev.agent,
+                                         -1)
+            new_events.append(left_over_send_event)
+            _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time + 1] = True
+    return new_events
+            
     #### Handle the request hop.
 
-    #### If served, put the request in the output queue.
-    return event(DUMMY, -1, -1, -1, -1, -1)
+def handle_measurement_event(_syst):
+    pass
