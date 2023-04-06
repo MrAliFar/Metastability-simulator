@@ -92,3 +92,18 @@ def parse_agent_config():
             agent_configs.append(vals)
     
     return agent_configs
+
+def parse_failures():
+    failures = []
+    with open('./Configs/failures.txt', 'r') as f:
+        for line in f:
+            vals = line.split(":")
+            for i in range(len(vals)-1):
+                if i == len(vals)-2:
+                    vals[i] = float(vals[i])
+                else:
+                    vals[i] = int(vals[i])
+            vals[len(vals) - 1] = vals[len(vals) - 1].split()[0]
+            lg.info(f"vals is {vals}")
+            failures.append(vals)
+    return failures

@@ -1,10 +1,13 @@
 from random import choice
+from math import ceil
 
 import logging as lg
 
+import template_utils
 import debug_utils
 
 #### Priorities
+FAILURE_PRIORITY = 70
 CLIENT_REQUEST_PRIORITY = 60
 SENDING_PRIORITY = 50
 RECEIVING_PRIORITY = 40
@@ -44,21 +47,22 @@ class event:
         self.hop = 0
 
 def has_higher_priority(ev1: event, ev2: event):
-    if ev1.priority == ev2.priority:
-        if ev1.agent == ev2.agent:
-            if ev1.priority == REQUEST_SERVE_PRIORITY:
-                ev1.request.pos < ev2.request.pos
-            elif ev1.priority == PENDING_SERVE_PRIORITY:
-                ev1.request.pos < ev2.request.pos
-            elif ev1.priority == SENDING_PRIORITY:
-                #### TODO:
-                pass
-            else:
-                return ev1.priority < ev2.priority
-        else:
-            return ev1.priority < ev2.priority
-    else:
-        return ev1.priority < ev2.priority
+    # if ev1.priority == ev2.priority:
+    #     if ev1.agent == ev2.agent:
+    #         if ev1.priority == REQUEST_SERVE_PRIORITY:
+    #             ev1.request.pos < ev2.request.pos
+    #         elif ev1.priority == PENDING_SERVE_PRIORITY:
+    #             ev1.request.pos < ev2.request.pos
+    #         elif ev1.priority == SENDING_PRIORITY:
+    #             #### TODO:
+    #             pass
+    #         else:
+    #             return ev1.priority < ev2.priority
+    #     else:
+    #         return ev1.priority < ev2.priority
+    # else:
+    #     return ev1.priority < ev2.priority
+    return ev1.priority < ev2.priority
 
 def heapify(_arr, n, i):
     # Find the largest among root, left child and right child
@@ -130,7 +134,17 @@ def issue_measurement_events(_events):
                            -1,
                            -1,
                            -1)
-        insert(_events, meas_event)
+        insert(_events[i], meas_event)
+
+def issue_failure_events(_events, _failures):
+    for failure_inst in _failures:
+        failure_event = event(FAILURE_PRIORITY,
+                              failure_inst.time,
+                              FAILURE,
+                              failure_inst.srvc,
+                              failure_inst.agent,
+                              failure_inst)
+        insert(_events[failure_event.time], failure_event)
 
 def handle_event(_ev, _syst, _cur_time, _network_delay, _sim_len):
     """
@@ -146,13 +160,15 @@ def handle_event(_ev, _syst, _cur_time, _network_delay, _sim_len):
     if _ev.type == CLIENT_REQUEST:
         return handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len)
     elif _ev.type == SERVE:
-        return handle_serve_event(_ev, _syst)
+        return handle_serve_event(_ev, _syst, _sim_len)
     elif _ev.type == RECEIVE:
         return handle_receive_event(_ev, _syst)
     elif _ev.type == SEND:
         return handle_send_event(_ev, _syst, _network_delay, _sim_len)
     elif _ev.type == MEASUREMENT:
-        return handle_measurement_event(_syst)
+        return handle_measurement_event(_syst, _cur_time)
+    elif _ev.type == FAILURE:
+        return handle_failure_event(_ev, _syst)
 
 def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
     #### Select a random agent from the corresponding service.
@@ -177,7 +193,7 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
         #debug_utils.print_unwrapped([new_event])
         return [new_event]
 
-def handle_serve_event(_ev, _syst):
+def handle_serve_event(_ev, _syst, _sim_len):
     #### Might need to add a pending request in the pending queue.
     out_queue_is_full = False
     new_event = -1
@@ -231,14 +247,15 @@ def handle_serve_event(_ev, _syst):
     #### If there are requests remaining in the input queue, the agent should
     #### serve at the next time slot.
     if not _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
-        if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
-            leftover_serve_event = event(REQUEST_SERVE_PRIORITY,
-                                         _ev.time + 1,
-                                         SERVE,
-                                         _ev.srvc,
-                                         _ev.agent,
-                                         -1)
-            _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time + 1] = True
+        if not _ev.time + 1 > _sim_len - 1:
+            if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
+                leftover_serve_event = event(REQUEST_SERVE_PRIORITY,
+                                            _ev.time + 1,
+                                            SERVE,
+                                            _ev.srvc,
+                                            _ev.agent,
+                                            -1)
+                _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time + 1] = True
     return [new_event, leftover_serve_event]
 
 
@@ -254,6 +271,8 @@ def handle_receive_event(_ev, _syst):
     if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.full():
         #### TODO: Handle dropping.
         lg.info(f"request dropped: {vars(_ev.request)}")
+        _syst.services[_ev.srvc].dropped_reqs += 1
+        _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
         return -1
     else:
         #### The request's position in the agent's input queue. This position is relative to the
@@ -297,18 +316,31 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
                 break
         out_queue_is_empty = True
     if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():
-        if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
-            left_over_send_event = event(SENDING_PRIORITY,
-                                         _ev.time + 1,
-                                         SEND,
-                                         _ev.srvc,
-                                         _ev.agent,
-                                         -1)
-            new_events.append(left_over_send_event)
-            _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time + 1] = True
+        if not _ev.time + 1 > _sim_len - 1:
+            if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
+                left_over_send_event = event(SENDING_PRIORITY,
+                                            _ev.time + 1,
+                                            SEND,
+                                            _ev.srvc,
+                                            _ev.agent,
+                                            -1)
+                new_events.append(left_over_send_event)
+                _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time + 1] = True
     return new_events
             
     #### Handle the request hop.
 
-def handle_measurement_event(_syst):
-    pass
+def handle_measurement_event(_syst, _cur_time):
+    num_dropped = 0
+    for i in range(len(_syst.services)):
+        num_dropped += _syst.services[i].dropped_reqs
+    _syst.dropped_reqs.append(num_dropped)
+    lg.info(f"The number of dropped requests in time {_cur_time} is {num_dropped}")
+    return -1
+
+def handle_failure_event(_ev, _syst):
+    lg.info(f"Degrading intro! {_ev.request.type}")
+    if _ev.request.type == "DEGRADE":
+        _syst.services[_ev.srvc].agents[_ev.agent].srvc_rate = ceil(_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate * _ev.request.degradation_factor)
+        lg.info(f"Degrading! {_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate}")
+    return -1

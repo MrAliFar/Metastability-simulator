@@ -6,6 +6,7 @@ import template_utils
 class system:
     def __init__(self):
         self.services = []
+        self.dropped_reqs = []
     
     def create_topology(self):
         """
@@ -24,6 +25,7 @@ class system:
         agt_id = 0
         for agt in agent_configs:
             self.services[agt[0]].agents.append(agent(agt_id, agt[1], agt[2], agt[3], agt[4], agt[5], agt[6], agt[7]))
+            lg.info(f"The in cap for the agent is {self.services[agt[0]].agents[len(self.services[agt[0]].agents) - 1].in_queue.maxsize}")
             agt_id += 1
 
 
@@ -31,6 +33,7 @@ class service:
     def __init__(self, _id):
         self.id = _id
         self.agents = []
+        self.dropped_reqs = 0
 
 class agent:
     def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_queue_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):
@@ -42,6 +45,8 @@ class agent:
         self.send_rate = _send_rate
         self.timeout = _timeout
         self.backoff_behavior = _backoff_behavior
+        #### The number of requests that the agent drops cumulatively
+        self.dropped_reqs = 0
         #### The map taking account of whether a serve event has been added to the agent's
         #### events at a particular time slot.
         self.serve_events = dict()

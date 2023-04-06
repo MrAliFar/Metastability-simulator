@@ -5,7 +5,9 @@ from queue import Queue
 import client_utils
 import event_utils
 import system_utils
+import failure_utils
 import debug_utils
+import plot_utils
 
 
 def start_sim(_network_delay, _sim_len, _num_reqs):
@@ -22,6 +24,8 @@ def start_sim(_network_delay, _sim_len, _num_reqs):
     #### Enter the client requests into the event priority queue.
     event_utils.issue_client_events(events, reqs)
     event_utils.issue_measurement_events(events)
+    failures = failure_utils.get_failures()
+    event_utils.issue_failure_events(events, failures)
     #### Start the simulation
     for i in range(_sim_len):
         lg.info(f"time is {i}")
@@ -39,6 +43,7 @@ def start_sim(_network_delay, _sim_len, _num_reqs):
                         if not ev == -1:
                             event_utils.insert(events[ev.time], ev)
                             #debug_utils.print_unwrapped([ev])
+    plot_utils.plot_list(syst.dropped_reqs)
 
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)
@@ -51,6 +56,6 @@ if __name__ == "__main__":
     ########## 4. Number of agents for each service
     ########## 5. The spec for each agent
     network_delay = 1
-    sim_len = 10
-    num_reqs = 5
+    sim_len = 50
+    num_reqs = 100
     start_sim(network_delay, sim_len, num_reqs)
