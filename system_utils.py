@@ -36,15 +36,21 @@ class service:
         self.dropped_reqs = 0
 
 class agent:
-    def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_queue_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):
+    def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_bag_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):
         self.id = _id
         self.in_queue = Queue(_in_queue_cap)
         self.out_queue = Queue(_out_queue_cap)
-        self.pending_queue = Queue(_pending_queue_cap)
+        self.pending_bag = []
+        self.pending_bag_cap = _pending_bag_cap
         self.srvc_rate = _srvc_rate
+        self.original_srvc_rate = _srvc_rate
+        #### The amount of service remaining at the moment. Resets to srvc_rate
+        #### at each time slot.
+        self.remaining_srvc = _srvc_rate
         self.send_rate = _send_rate
         self.timeout = _timeout
         self.backoff_behavior = _backoff_behavior
+        self.timeout_index_cntr = 0
         #### The number of requests that the agent drops cumulatively
         self.dropped_reqs = 0
         #### The map taking account of whether a serve event has been added to the agent's

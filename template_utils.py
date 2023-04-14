@@ -107,3 +107,18 @@ def parse_failures():
             lg.info(f"vals is {vals}")
             failures.append(vals)
     return failures
+
+def parse_mitigations():
+    mitigations = []
+    with open('./Configs/mitigations.txt', 'r') as f:
+        for line in f:
+            vals = line.split(":")
+            for i in range(len(vals)-1):
+                if i == len(vals)-2:
+                    vals[i] = float(vals[i])
+                else:
+                    vals[i] = int(vals[i])
+            vals[len(vals) - 1] = vals[len(vals) - 1].split()[0]
+            lg.info(f"vals is {vals}")
+            mitigations.append(vals)
+    return mitigations

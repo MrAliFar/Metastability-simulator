@@ -1,15 +1,17 @@
 import logging as lg
 
 #### Request types
-EXTERNAL = 1
-INTERNAL = 2
-ACKNOWLEDGEMENT = 3
+EXTERNAL = "External"
+INTERNAL = "Internal"
+ACK = "Ack"
 
 class request:
     def __init__(self, _type, _pattern, _ack_pattern, _origin, _time_slot):
+        self.id = -1
         self.type = _type
         self.pattern = _pattern
-        #### The acknowledgment pattern of the request's communication pattern.
+        #### The acknowledgment pattern of the request's communication pattern. It's length
+        #### should be one less than the pattern's length.
         self.ack_pattern = _ack_pattern
         #### The original agent from which the request had started. If it is external,
         #### This value will be equal to -1.
@@ -37,3 +39,12 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot):
         - A request.
     """
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot)
+
+def copy_request(_req: request):
+    _type = _req.type
+    _pattern = _req.pattern
+    _ack_pattern = _req.ack_pattern
+    _origin = _req.origin
+    _time_slot = _req.time_slot
+    dup_req = request(_type, _pattern, _ack_pattern, _origin, _time_slot)
+    return dup_req

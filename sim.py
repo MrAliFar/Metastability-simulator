@@ -24,12 +24,18 @@ def start_sim(_network_delay, _sim_len, _num_reqs):
     #### Enter the client requests into the event priority queue.
     event_utils.issue_client_events(events, reqs)
     event_utils.issue_measurement_events(events)
+    #### Get the failures from the config, and add them as events.
     failures = failure_utils.get_failures()
     event_utils.issue_failure_events(events, failures)
+    #### Get the mitigations from the config, and add them as events.
+    mitigations = failure_utils.get_mitigations()
+    event_utils.issue_mitigation_events(events, mitigations)
     #### Start the simulation
     for i in range(_sim_len):
         lg.info(f"time is {i}")
-        debug_utils.print_list_unwrapped(events[i])
+        
+        #debug_utils.print_list_unwrapped(events[i])
+        
         if len(events[i]) == 0:
             continue
         else:
@@ -57,5 +63,5 @@ if __name__ == "__main__":
     ########## 5. The spec for each agent
     network_delay = 1
     sim_len = 50
-    num_reqs = 100
+    num_reqs = 20
     start_sim(network_delay, sim_len, num_reqs)
