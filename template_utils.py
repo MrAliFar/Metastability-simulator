@@ -122,3 +122,11 @@ def parse_mitigations():
             lg.info(f"vals is {vals}")
             mitigations.append(vals)
     return mitigations
+
+def parse_trigger():
+    trigger_config = []
+    with open('./Configs/trigger_config.txt', 'r') as f:
+        for line in f:
+            vals = line.split(":")
+            trigger_config.append([int(val) for val in vals])
+    return trigger_config

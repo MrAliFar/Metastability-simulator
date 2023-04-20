@@ -232,21 +232,23 @@ def handle_serve_event(_ev, _syst, _sim_len):
                 else:
                     #for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate):
                     while _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc > 0:
-                        lg.info("Served!")
-                        #### TODO: We need this request to handle timeouts. For now, we do not have timeouts.
+                        #lg.info("Served!")
 
                         #### Get the next request in the queue.
                         #lg.info(f"Behind the queue - srvc is {_ev.srvc} - agent is {_ev.agent}")
                         req = _syst.services[_ev.srvc].agents[_ev.agent].in_queue.get()
+                        #### Update the served requests measurement
+                        _syst.services[_ev.srvc].served_reqs += 1
+                        _syst.services[_ev.srvc].agents[_ev.agent].served_reqs += 1
                         #### Update the online service capacity.
                         _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc += -1
                         if req.type == request_utils.ACK:
                             #lg.info("ACK!")
                             for requ in _syst.services[_ev.srvc].agents[_ev.agent].pending_bag:
                                 if requ.id == req.id:
-                                    lg.info(f"Removed!! srvc is {_ev.srvc} - agent is {_ev.agent} - id is {requ.id} - len is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
+                                    #lg.info(f"Removed!! srvc is {_ev.srvc} - agent is {_ev.agent} - id is {requ.id} - len is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     _syst.services[_ev.srvc].agents[_ev.agent].pending_bag.remove(requ)
-                                    lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
+                                    #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
                                     break
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
@@ -302,7 +304,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                         new_events.append(timeout_event)
                                 else:
                                     #### TODO: Check this!
-                                    lg.info(f"Dropped! Full pending. cap is {_syst.services[_ev.srvc].agents[_ev.agent].pending_bag_cap}")
+                                    #lg.info(f"Dropped! Full pending. cap is {_syst.services[_ev.srvc].agents[_ev.agent].pending_bag_cap}")
                                     _syst.services[_ev.srvc].dropped_reqs += 1
                                     _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
                                     if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
@@ -372,7 +374,7 @@ def handle_receive_event(_ev, _syst):
     #### Check to see whether the request has to be dropped.
     if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.full():
         #### TODO: Handle dropping.
-        lg.info(f"request dropped: {vars(_ev.request)}")
+        #lg.info(f"request dropped: {vars(_ev.request)}")
         _syst.services[_ev.srvc].dropped_reqs += 1
         _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
         return -1
@@ -448,7 +450,16 @@ def handle_measurement_event(_syst, _cur_time):
     for i in range(len(_syst.services)):
         num_dropped += _syst.services[i].dropped_reqs
     _syst.dropped_reqs.append(num_dropped)
-    lg.info(f"The number of dropped requests in time {_cur_time} is {num_dropped}")
+    
+    num_served = 0
+    for i in range(len(_syst.services)):
+        num_served += _syst.services[i].served_reqs
+    _syst.served_reqs.append(num_served)
+
+    num_retried = 0
+    for i in range(len(_syst.services)):
+        num_retried += _syst.services[i].retried_reqs
+    _syst.retried_reqs.append(num_retried)
     return -1
 
 def handle_failure_event(_ev, _syst):
@@ -485,6 +496,10 @@ def handle_timeout_event(_ev, _syst, _sim_len):
                 new_events.append(send_event)
             send_req = request_utils.copy_request(_ev.request)
             _syst.services[_ev.srvc].agents[_ev.agent].out_queue.put(send_req)
+            #### Update the retried reqs measurements
+            _syst.services[_ev.srvc].retried_reqs += 1
+            _syst.services[_ev.srvc].agents[_ev.agent].retried_reqs += 1
+
             timeout_slot = _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
             if not timeout_slot > _sim_len - 1:
                 timeout_event = event(TIMEOUT_PRIORITY,

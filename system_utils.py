@@ -7,6 +7,9 @@ class system:
     def __init__(self):
         self.services = []
         self.dropped_reqs = []
+        self.served_reqs = []
+        self.served_client_reqs = []
+        self.retried_reqs = []
     
     def create_topology(self):
         """
@@ -34,6 +37,9 @@ class service:
         self.id = _id
         self.agents = []
         self.dropped_reqs = 0
+        self.served_reqs = 0
+        self.served_client_reqs = 0
+        self.retried_reqs = 0
 
 class agent:
     def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_bag_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):
@@ -53,6 +59,12 @@ class agent:
         self.timeout_index_cntr = 0
         #### The number of requests that the agent drops cumulatively
         self.dropped_reqs = 0
+        #### The number of requests that the agent serves cumulatively
+        self.served_reqs = 0
+        #### The number of end-to-end client requests that the agent serves cumulatively
+        self.served_client_reqs = 0
+        #### The number of requests that the agent retries cumulatively
+        self.retried_reqs = 0
         #### The map taking account of whether a serve event has been added to the agent's
         #### events at a particular time slot.
         self.serve_events = dict()
