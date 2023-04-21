@@ -6,6 +6,8 @@ import template_utils
 class system:
     def __init__(self):
         self.services = []
+        self.receive_dropped_reqs = []
+        self.pending_dropped_reqs = []
         self.dropped_reqs = []
         self.served_reqs = []
         self.served_client_reqs = []
@@ -36,6 +38,8 @@ class service:
     def __init__(self, _id):
         self.id = _id
         self.agents = []
+        self.receive_dropped_reqs = 0
+        self.pending_dropped_reqs = 0
         self.dropped_reqs = 0
         self.served_reqs = 0
         self.served_client_reqs = 0
@@ -58,6 +62,8 @@ class agent:
         self.backoff_behavior = _backoff_behavior
         self.timeout_index_cntr = 0
         #### The number of requests that the agent drops cumulatively
+        self.receive_dropped_reqs = 0
+        self.pending_dropped_reqs = 0
         self.dropped_reqs = 0
         #### The number of requests that the agent serves cumulatively
         self.served_reqs = 0

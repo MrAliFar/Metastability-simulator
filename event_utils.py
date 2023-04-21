@@ -306,7 +306,9 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     #### TODO: Check this!
                                     #lg.info(f"Dropped! Full pending. cap is {_syst.services[_ev.srvc].agents[_ev.agent].pending_bag_cap}")
                                     _syst.services[_ev.srvc].dropped_reqs += 1
+                                    _syst.services[_ev.srvc].pending_dropped_reqs += 1
                                     _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
+                                    _syst.services[_ev.srvc].agents[_ev.agent].pending_dropped_reqs += 1
                                     if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                         in_queue_is_empty = True
                                         out_queue_is_full = True
@@ -376,7 +378,9 @@ def handle_receive_event(_ev, _syst):
         #### TODO: Handle dropping.
         #lg.info(f"request dropped: {vars(_ev.request)}")
         _syst.services[_ev.srvc].dropped_reqs += 1
+        _syst.services[_ev.srvc].receive_dropped_reqs += 1
         _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
+        _syst.services[_ev.srvc].agents[_ev.agent].receive_dropped_reqs += 1
         return -1
     else:
         #### The request's position in the agent's input queue. This position is relative to the
@@ -447,9 +451,15 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
 
 def handle_measurement_event(_syst, _cur_time):
     num_dropped = 0
+    num_receive_dropped = 0
+    num_pending_dropped = 0
     for i in range(len(_syst.services)):
         num_dropped += _syst.services[i].dropped_reqs
+        num_receive_dropped += _syst.services[i].receive_dropped_reqs
+        num_pending_dropped += _syst.services[i].pending_dropped_reqs
     _syst.dropped_reqs.append(num_dropped)
+    _syst.receive_dropped_reqs.append(num_receive_dropped)
+    _syst.pending_dropped_reqs.append(num_pending_dropped)
     
     num_served = 0
     for i in range(len(_syst.services)):

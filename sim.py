@@ -104,6 +104,14 @@ if __name__ == "__main__":
                         type=int,
                         required=True,
                         help='Whether to plot the cumulative dropped requests in the entire system.')
+    parser.add_argument('--plot_receive_dropped',
+                        type=int,
+                        required=True,
+                        help='Whether to plot the cumulative receive-dropped requests in the entire system.')
+    parser.add_argument('--plot_pending_dropped',
+                        type=int,
+                        required=True,
+                        help='Whether to plot the cumulative pending-dropped requests in the entire system.')
     parser.add_argument('--plot_served',
                         type=int,
                         required=True,
@@ -112,6 +120,14 @@ if __name__ == "__main__":
                         type=int,
                         required=True,
                         help='Whether to plot the cumulative retried requests in the entire system.')
+    parser.add_argument('--plot_failures',
+                        type=int,
+                        required=True,
+                        help='Whether to plot the failure boundaries.')
+    parser.add_argument('--plot_mitigations',
+                        type=int,
+                        required=True,
+                        help='Whether to plot the mitigation boundaries.')
 
     args = parser.parse_args()
     #network_delay = 1
