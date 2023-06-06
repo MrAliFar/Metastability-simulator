@@ -268,7 +268,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                                                 [-1, req.pattern[req.hop - 1]],
                                                                 [],
                                                                 req.origin,
-                                                                _ev.time)
+                                                                _ev.time,
+                                                                req.syst_id)
                                 ack_req.id = req.id
                                 _syst.services[_ev.srvc].agents[_ev.agent].out_queue.put(ack_req)
                                 if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
@@ -334,6 +335,10 @@ def handle_serve_event(_ev, _syst, _sim_len):
                             #### If the request is in its final hop, then no need to create
                             #### a send event.
 
+                            if not req.syst_id in _syst.responded_reqs_ids:
+                                _syst.responded_reqs_ids[req.syst_id] = True
+                                _syst.services[_ev.srvc].responded_reqs += 1
+                                _syst.services[_ev.srvc].agents[_ev.agent].responded_reqs += 1
                             #### TODO: Check this!
                             del req
                         if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
@@ -457,9 +462,13 @@ def handle_measurement_event(_syst, _cur_time):
         num_dropped += _syst.services[i].dropped_reqs
         num_receive_dropped += _syst.services[i].receive_dropped_reqs
         num_pending_dropped += _syst.services[i].pending_dropped_reqs
+        _syst.services[i].temporal_dropped_reqs.append(_syst.services[i].dropped_reqs)
+        _syst.services[i].temporal_receive_dropped_reqs.append(_syst.services[i].receive_dropped_reqs)
+        _syst.services[i].temporal_pending_dropped_reqs.append(_syst.services[i].pending_dropped_reqs)
     _syst.dropped_reqs.append(num_dropped)
     _syst.receive_dropped_reqs.append(num_receive_dropped)
     _syst.pending_dropped_reqs.append(num_pending_dropped)
+    
     
     num_served = 0
     for i in range(len(_syst.services)):
@@ -470,6 +479,11 @@ def handle_measurement_event(_syst, _cur_time):
     for i in range(len(_syst.services)):
         num_retried += _syst.services[i].retried_reqs
     _syst.retried_reqs.append(num_retried)
+
+    num_responded = 0
+    for i in range(len(_syst.services)):
+        num_responded += _syst.services[i].responded_reqs
+    _syst.responded_reqs.append(num_responded)
     return -1
 
 def handle_failure_event(_ev, _syst):

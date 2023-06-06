@@ -104,7 +104,7 @@ def parse_failures():
                 else:
                     vals[i] = int(vals[i])
             vals[len(vals) - 1] = vals[len(vals) - 1].split()[0]
-            lg.info(f"vals is {vals}")
+            #lg.info(f"vals is {vals}")
             failures.append(vals)
     return failures
 

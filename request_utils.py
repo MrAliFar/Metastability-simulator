@@ -6,8 +6,9 @@ INTERNAL = "Internal"
 ACK = "Ack"
 
 class request:
-    def __init__(self, _type, _pattern, _ack_pattern, _origin, _time_slot):
+    def __init__(self, _type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
         self.id = -1
+        self.syst_id = _syst_id
         self.type = _type
         self.pattern = _pattern
         #### The acknowledgment pattern of the request's communication pattern. It's length
@@ -20,7 +21,7 @@ class request:
         self.time_slot = _time_slot
         #### The position of a request in the queue that it resides in. This position
         #### is respecting the end of the queue, i.e., the last element slot. This makes
-        #### is easier to use this position as a notion of priority in the event priority queue.
+        #### it easier to use this position as a notion of priority in the event priority queue.
         self.pos = -1
         #### The request's hop number in its communication pattern.
         self.hop = 0
@@ -28,7 +29,7 @@ class request:
         #### the first and final elements of the request's communication pattern.
         self.requires_response = False
 
-def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot):
+def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
     """
     The interface between any other piece of code and the request package, for creating
     requests.
@@ -38,7 +39,7 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot):
     Output:
         - A request.
     """
-    return request(_type, _pattern, _ack_pattern, _origin, _time_slot)
+    return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
 
 def copy_request(_req: request):
     _type = _req.type
@@ -46,5 +47,6 @@ def copy_request(_req: request):
     _ack_pattern = _req.ack_pattern
     _origin = _req.origin
     _time_slot = _req.time_slot
-    dup_req = request(_type, _pattern, _ack_pattern, _origin, _time_slot)
+    _syst_id = _req.syst_id
+    dup_req = request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     return dup_req

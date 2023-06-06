@@ -11,6 +11,10 @@ class system:
         self.dropped_reqs = []
         self.served_reqs = []
         self.served_client_reqs = []
+        #### The number of requests that are responded to by the system.
+        self.responded_reqs = []
+        #### A dictionary taking account of the ids of the responded requests.
+        self.responded_reqs_ids = dict()
         self.retried_reqs = []
     
     def create_topology(self):
@@ -41,9 +45,14 @@ class service:
         self.receive_dropped_reqs = 0
         self.pending_dropped_reqs = 0
         self.dropped_reqs = 0
+        #### The number of dropped requests based on time
+        self.temporal_receive_dropped_reqs = []
+        self.temporal_pending_dropped_reqs = []
+        self.temporal_dropped_reqs = []
         self.served_reqs = 0
         self.served_client_reqs = 0
         self.retried_reqs = 0
+        self.responded_reqs = 0
 
 class agent:
     def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_bag_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):
@@ -65,12 +74,18 @@ class agent:
         self.receive_dropped_reqs = 0
         self.pending_dropped_reqs = 0
         self.dropped_reqs = 0
+        #### The number of dropped requests based on time
+        self.temporal_receive_dropped_reqs = []
+        self.temporal_pending_dropped_reqs = []
+        self.temporal_dropped_reqs = []
         #### The number of requests that the agent serves cumulatively
         self.served_reqs = 0
         #### The number of end-to-end client requests that the agent serves cumulatively
         self.served_client_reqs = 0
         #### The number of requests that the agent retries cumulatively
         self.retried_reqs = 0
+        #### The number of requests that are finally responded to by the agent.
+        self.responded_reqs = 0
         #### The map taking account of whether a serve event has been added to the agent's
         #### events at a particular time slot.
         self.serve_events = dict()
