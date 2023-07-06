@@ -16,6 +16,7 @@ class system:
         #### A dictionary taking account of the ids of the responded requests.
         self.responded_reqs_ids = dict()
         self.retried_reqs = []
+
     
     def create_topology(self):
         """
@@ -67,9 +68,10 @@ class agent:
         #### at each time slot.
         self.remaining_srvc = _srvc_rate
         self.send_rate = _send_rate
-        self.timeout = _timeout
+        self.timeout = _timeout ####initial timeout value
         self.backoff_behavior = _backoff_behavior
         self.timeout_index_cntr = 0
+        self.timeout_bucket = 10 #### a token bucket for if there is any available retry
         #### The number of requests that the agent drops cumulatively
         self.receive_dropped_reqs = 0
         self.pending_dropped_reqs = 0

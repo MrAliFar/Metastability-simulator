@@ -41,6 +41,12 @@ def start_sim(args: argparse.Namespace):
         
         #debug_utils.print_list_unwrapped(events[i])
         
+        # add timeout bucket token for every agent here
+        for _agents in syst.services:
+            for _theagent in _agents:
+                _theagent.timeout_bucket += 1
+        
+        ####handle events starting from timeslot 1
         if len(events[i]) == 0:
             continue
         else:
