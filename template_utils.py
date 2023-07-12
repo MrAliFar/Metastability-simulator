@@ -71,12 +71,12 @@ def parse_agent_config():
     Example: 0:5:2:5:2:2:5:CONST. With the sequence of: 
     id, in_queue_cap, out_queue_cap, pending_bag_cap, 
     srvc_rate, send_rate, timeout, _backoff_behavior
-    There are two general backoff types for now:
-        + CONST
-        + MUL
-        + ADD
-        + BUCK
-        + RAND
+    There are a few general backoff types for now:
+        + CONST : constant timeout latency
+        + EXP:  exponential backoff
+        + LIN: linearly increase timeout time
+        + BUCK: constant latency but only timeout if there is token
+        + RAND: exponential backoff with jitter
     The rest designate in_queue_cap, out_queue_cap, pending_queue_cap, srvc_rate, and
     the initial timeout value.
     

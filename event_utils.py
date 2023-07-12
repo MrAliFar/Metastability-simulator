@@ -249,6 +249,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 if requ.id == req.id:
                                     #lg.info(f"Removed!! srvc is {_ev.srvc} - agent is {_ev.agent} - id is {requ.id} - len is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     _syst.services[_ev.srvc].agents[_ev.agent].pending_bag.remove(requ)
+                                    lg.info(f"LLLLLLLLLLLLLLLLLLLLL - get an ack, remove pending bag - {req.syst_id}")
+                                    _syst.services[_ev.srvc].agents[_ev.agent].acked_events[req.syst_id] = True
                                     #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
                                     break
@@ -297,7 +299,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     _syst.services[_ev.srvc].agents[_ev.agent].pending_bag.append(pending_req)
                                     
                                     timeout_slot = backoff_utils.calculate_timeoutslot(_ev, _syst)
-                                    if not timeout_slot > _sim_len - 1:
+                                    lg.info(timeout_slot)
+                                    if not timeout_slot > _sim_len - 1 :
                                         timeout_event = event(TIMEOUT_PRIORITY,
                                                             timeout_slot,
                                                             TIMEOUT,
@@ -342,8 +345,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 _syst.services[_ev.srvc].responded_reqs += 1
                                 _syst.services[_ev.srvc].agents[_ev.agent].responded_reqs += 1
                             #### TODO: Check this!
-                            ##add bucket budget since repond success
-                            _syst.services[_ev.srvc].agents[_ev.agent].timeout_bucket += 1
+                            ##add bucket budget since respond success
+                            backoff_utils.request_success_timeout_change(_ev, _syst)
                             del req
                         if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                             in_queue_is_empty = True
@@ -511,10 +514,15 @@ def handle_timeout_event(_ev, _syst, _sim_len):
     new_events = []
     if _ev.request.id < 0:
         return new_events
+    ### should this be added?
+    if _ev.request.syst_id in _syst.services[_ev.srvc].agents[_ev.agent].acked_events:
+        lg.info("already got ack for"+ _ev.request.syst_id)
+        return new_events
     if _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc > 0:
         if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
             if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
                 _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time] = True
+                backoff_utils.timeout_backoff(_ev, _syst)
                 send_event = event(SENDING_PRIORITY,
                                    _ev.time,
                                    SEND,

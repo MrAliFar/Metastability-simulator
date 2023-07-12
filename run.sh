@@ -15,4 +15,4 @@ python3 sim.py \
 --plot_retried 1 \
 --plot_failures 1 \
 --plot_mitigations 1 \
---plot_service_dropped 1
+--plot_service_dropped 0
