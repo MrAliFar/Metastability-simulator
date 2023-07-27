@@ -11,6 +11,7 @@ import template_utils
 import measurement_utils
 import debug_utils
 import plot_utils
+import backoff_utils
 
 def start_sim(args: argparse.Namespace):
 #def start_sim(_network_delay, _sim_len, _num_reqs):
@@ -42,6 +43,10 @@ def start_sim(args: argparse.Namespace):
         
         #debug_utils.print_list_unwrapped(events[i])
         
+        # refresh timeoutchange for every agent here
+        backoff_utils.timeout_change_newtimeslot(syst)
+        
+        ####handle events starting from timeslot 1
         if len(events[i]) == 0:
             continue
         else:

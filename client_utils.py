@@ -36,6 +36,7 @@ def generate_requests(_policy):
     reqs = []
     syst_id_cntr = 0
     if _policy == "LOAD_SHOCK":
+        ####generate a load with load shock inbetween trigger[1]<= ts <= trigger[2] with maxload = trigger[0] * trigger[4]
         trigger = template_utils.parse_trigger()[0]
         for ts in range(trigger[1]):
             for _ in range(trigger[0]):

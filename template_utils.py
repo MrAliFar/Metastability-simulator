@@ -68,11 +68,15 @@ def parse_agent_config():
     """
     Parse the agent configs file to extract the configuration for each agent.
     
-    Example: 1:ADD:5:5:2:2:3. Here, 1 refers to the service the agent belongs to, and ADD
-    specifies that the agent's backoff behavior is additive. There are two general
-    backoff types for now:
-        + ADD
-        + MUL
+    Example: 0:5:2:5:2:2:5:CONST. With the sequence of: 
+    id, in_queue_cap, out_queue_cap, pending_bag_cap, 
+    srvc_rate, send_rate, timeout, _backoff_behavior
+    There are a few general backoff types for now:
+        + CONST : constant timeout latency
+        + EXP:  exponential backoff
+        + LIN: linearly increase timeout time
+        + BUCK: constant latency but only timeout if there is token
+        + RAND: exponential backoff with jitter
     The rest designate in_queue_cap, out_queue_cap, pending_queue_cap, srvc_rate, and
     the initial timeout value.
     

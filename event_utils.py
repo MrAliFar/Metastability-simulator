@@ -6,6 +6,7 @@ import logging as lg
 import request_utils
 import template_utils
 import debug_utils
+import backoff_utils
 
 #### Priorities
 FAILURE_PRIORITY = 90
@@ -258,6 +259,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     _syst.services[_ev.srvc].agents[_ev.agent].acked_reqs[req.syst_id] = True
                                     #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
+                                    ##add bucket budget since respond success
+                                    backoff_utils.request_success_timeout_change(_ev, _syst)
                                     break
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
@@ -305,8 +308,10 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     _syst.services[_ev.srvc].agents[_ev.agent].timeout_index_cntr += 1
 
                                     _syst.services[_ev.srvc].agents[_ev.agent].pending_bag.append(pending_req)
-                                    timeout_slot = _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
-                                    if not timeout_slot > _sim_len - 1:
+                                    
+                                    timeout_slot = backoff_utils.calculate_timeoutslot(_ev, _syst)
+                                    lg.info(timeout_slot)
+                                    if not timeout_slot > _sim_len - 1 :
                                         timeout_event = event(TIMEOUT_PRIORITY,
                                                             timeout_slot,
                                                             TIMEOUT,
@@ -351,6 +356,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 _syst.services[_ev.srvc].responded_reqs += 1
                                 _syst.services[_ev.srvc].agents[_ev.agent].responded_reqs += 1
                             #### TODO: Check this!
+                            
                             del req
                         if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                             in_queue_is_empty = True
@@ -542,6 +548,7 @@ def handle_timeout_event(_ev, _syst, _sim_len):
         if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
             if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
                 _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time] = True
+                backoff_utils.timeout_backoff(_ev, _syst)
                 send_event = event(SENDING_PRIORITY,
                                    _ev.time,
                                    SEND,
@@ -556,7 +563,7 @@ def handle_timeout_event(_ev, _syst, _sim_len):
             _syst.services[_ev.srvc].retried_reqs += 1
             _syst.services[_ev.srvc].agents[_ev.agent].retried_reqs += 1
 
-            timeout_slot = _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
+            timeout_slot = backoff_utils.calculate_timeoutslot(_ev, _syst)
             if not timeout_slot > _sim_len - 1:
                 timeout_event = event(TIMEOUT_PRIORITY,
                                       timeout_slot,
