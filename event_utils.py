@@ -253,6 +253,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     _syst.services[_ev.srvc].agents[_ev.agent].acked_events[req.syst_id] = True
                                     #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
+                                    ##add bucket budget since respond success
+                                    backoff_utils.request_success_timeout_change(_ev, _syst)
                                     break
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
@@ -345,8 +347,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 _syst.services[_ev.srvc].responded_reqs += 1
                                 _syst.services[_ev.srvc].agents[_ev.agent].responded_reqs += 1
                             #### TODO: Check this!
-                            ##add bucket budget since respond success
-                            backoff_utils.request_success_timeout_change(_ev, _syst)
+                            
                             del req
                         if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                             in_queue_is_empty = True
@@ -516,7 +517,7 @@ def handle_timeout_event(_ev, _syst, _sim_len):
         return new_events
     ### should this be added?
     if _ev.request.syst_id in _syst.services[_ev.srvc].agents[_ev.agent].acked_events:
-        lg.info("already got ack for"+ _ev.request.syst_id)
+        lg.info(f"LLLLLLLLLLLLLLLLLLLLL - already got ack for { _ev.request.syst_id}")
         return new_events
     if _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc > 0:
         if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():

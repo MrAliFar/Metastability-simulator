@@ -68,7 +68,11 @@ def start_sim(args: argparse.Namespace):
 
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)
-    lg.basicConfig(format = "%(filename)s:%(lineno)d %(message)s", level = lg.DEBUG)
+    lg.basicConfig(filename= "log.txt",
+                    filemode='a',
+                    format = "%(filename)s:%(lineno)d %(message)s", 
+                    datefmt='%H:%M:%S',
+                    level = lg.DEBUG)
     
     #### Parse arguments:
     ########## 1. Simulation length
