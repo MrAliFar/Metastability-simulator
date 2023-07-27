@@ -2,7 +2,7 @@ import template_utils
 import request_utils
 from random import randint
 
-def issue_client_requests(sim_len, num_reqs, _policy):
+def issue_client_requests(_input_duration, num_reqs, _policy):
     """
     A function that creates the initial client requests.
     
@@ -20,7 +20,7 @@ def issue_client_requests(sim_len, num_reqs, _policy):
         #### requests. The requests differ based on their communication pattern.
         reqs = []
         for _ in range(num_reqs):
-            ts = randint(0, sim_len - 1)
+            ts = randint(0, _input_duration - 1)
             pattern_index = randint(0, len(req_patterns) - 1)
             reqs.append(request_utils.create_request(request_utils.EXTERNAL, req_patterns[pattern_index], req_acks[pattern_index], -1, ts, syst_id_cntr))
             syst_id_cntr += 1

@@ -130,3 +130,7 @@ def parse_trigger():
             vals = line.split(":")
             trigger_config.append([int(val) for val in vals])
     return trigger_config
+
+def write_to_file(_file_name, _content):
+    with open(_file_name, "a") as f:
+        f.write(_content)

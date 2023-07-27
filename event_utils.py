@@ -184,7 +184,7 @@ def handle_event(_ev, _syst, _cur_time, _network_delay, _sim_len):
     elif _ev.type == FAILURE:
         return handle_failure_event(_ev, _syst)
     elif _ev.type == MITIGATION:
-        return handle_mitigation_event(_ev, _syst)
+        return handle_mitigation_event(_ev, _syst, _sim_len)
     elif _ev.type == TIMEOUT:
         return handle_timeout_event(_ev, _syst, _sim_len)
 
@@ -213,27 +213,33 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
         return [new_event]
 
 def handle_serve_event(_ev, _syst, _sim_len):
+    lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event - service: {_ev.srvc}  - agent: {_ev.agent}")
     #### Might need to add a pending request in the pending queue.
     out_queue_is_full = False
     new_event = -1
     new_events = []
     leftover_serve_event = -1
     while not out_queue_is_full:
+        lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event out queue not full - service: {_ev.srvc}  - agent: {_ev.agent}")
         if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
             out_queue_is_full = True
+            lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event out full - service: {_ev.srvc}  - agent: {_ev.agent}")
             continue
         else:
             in_queue_is_empty = False
             while not in_queue_is_empty:
+                lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event in queue not empty - service: {_ev.srvc}  - agent: {_ev.agent}")
                 if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
                     in_queue_is_empty = True
                     out_queue_is_full = True
+                    lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event in full - service: {_ev.srvc}  - agent: {_ev.agent}")
                     continue
                 else:
                     #for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate):
+                    lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event service remaining: {_syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc} - service: {_ev.srvc}  - agent: {_ev.agent}")
                     while _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc > 0:
                         #lg.info("Served!")
-
+                        lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event service remaining - service: {_ev.srvc}  - agent: {_ev.agent}")
                         #### Get the next request in the queue.
                         #lg.info(f"Behind the queue - srvc is {_ev.srvc} - agent is {_ev.agent}")
                         req = _syst.services[_ev.srvc].agents[_ev.agent].in_queue.get()
@@ -245,9 +251,11 @@ def handle_serve_event(_ev, _syst, _sim_len):
                         if req.type == request_utils.ACK:
                             #lg.info("ACK!")
                             for requ in _syst.services[_ev.srvc].agents[_ev.agent].pending_bag:
-                                if requ.id == req.id:
+                                if requ.syst_id == req.syst_id:
+                                    lg.info(f"CCCCCCCCCCCCCCCCCCCCCCCCCC - comparison - ({requ.id} - {requ.syst_id}) - ({req.id} - {req.syst_id})")
                                     #lg.info(f"Removed!! srvc is {_ev.srvc} - agent is {_ev.agent} - id is {requ.id} - len is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     _syst.services[_ev.srvc].agents[_ev.agent].pending_bag.remove(requ)
+                                    _syst.services[_ev.srvc].agents[_ev.agent].acked_reqs[req.syst_id] = True
                                     #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
                                     break
@@ -262,6 +270,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                             continue
                         if req.hop > 0:
                             #lg.info(f"Inside req.hop > 0 - time is {_ev.time} - ack_pattern is {req.ack_pattern} - hop is {req.hop}")
+                            lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event intermediate hop - service: {_ev.srvc}  - agent: {_ev.agent}")
                             if req.ack_pattern[req.hop - 1] == 1:
                                 #lg.info(f"Need to respond - time is {_ev.time} - pattern is {req.pattern} - hop is {req.hop} - origin is {req.origin}")
                                 ack_req = request_utils.create_request(request_utils.ACK,
@@ -271,6 +280,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                                                 _ev.time,
                                                                 req.syst_id)
                                 ack_req.id = req.id
+                                lg.info(f"AckAckAckAckAckAckAckAckAck - service: {_ev.srvc} - agent: {_ev.agent} - {ack_req.id}")
                                 _syst.services[_ev.srvc].agents[_ev.agent].out_queue.put(ack_req)
                                 if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
                                     new_event = event(SENDING_PRIORITY,
@@ -282,7 +292,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     new_events.append(new_event)
                                     _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time] = True
                         if not req.hop == len(req.pattern)-1:
-                            #lg.info("Not the last hop!")
+                            lg.info("Not the last hop!")
                             if req.ack_pattern[req.hop] == 1:
                                 if len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag) < _syst.services[_ev.srvc].agents[_ev.agent].pending_bag_cap:
                                     pending_req = request_utils.copy_request(req)
@@ -290,6 +300,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                     
                                     #### Unique timestamp to recognize later, when receiving the ack
                                     req.id = _syst.services[_ev.srvc].agents[_ev.agent].timeout_index_cntr
+                                    lg.info(f"NeedNeedNeedNeedNeedNeedNeedNeed - {req.id}")
                                     pending_req.id = _syst.services[_ev.srvc].agents[_ev.agent].timeout_index_cntr
                                     _syst.services[_ev.srvc].agents[_ev.agent].timeout_index_cntr += 1
 
@@ -334,7 +345,7 @@ def handle_serve_event(_ev, _syst, _sim_len):
                         else:
                             #### If the request is in its final hop, then no need to create
                             #### a send event.
-
+                            lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event final hop - service: {_ev.srvc}  - agent: {_ev.agent}")
                             if not req.syst_id in _syst.responded_reqs_ids:
                                 _syst.responded_reqs_ids[req.syst_id] = True
                                 _syst.services[_ev.srvc].responded_reqs += 1
@@ -386,6 +397,8 @@ def handle_receive_event(_ev, _syst):
         _syst.services[_ev.srvc].receive_dropped_reqs += 1
         _syst.services[_ev.srvc].agents[_ev.agent].dropped_reqs += 1
         _syst.services[_ev.srvc].agents[_ev.agent].receive_dropped_reqs += 1
+        debug_utils.print_queue(_syst.services[_ev.srvc].agents[_ev.agent].in_queue)
+        lg.info(f"DinDinDinDinDinDinDinDinDinDin - Service: {_ev.srvc} - Dropped at input - {_ev.request.syst_id} - Type: {_ev.request.type}")
         return -1
     else:
         #### The request's position in the agent's input queue. This position is relative to the
@@ -409,9 +422,10 @@ def handle_receive_event(_ev, _syst):
 def handle_send_event(_ev, _syst, _network_delay, _sim_len):
     #### TODO: the following returns very early. Perhaps the delays are different for each
     #### request in the output queue.
+    lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - send event - service: {_ev.srvc}  - agent: {_ev.agent} - time: {_ev.time}")
     if _ev.time + _network_delay > _sim_len - 1:
         return -1
-    out_queue_is_empty = False
+    out_queue_is_empty = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty()
     new_events = []
     while not out_queue_is_empty:
         for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].send_rate):
@@ -494,19 +508,36 @@ def handle_failure_event(_ev, _syst):
     #### TODO: Does -1 universally capture everything?
     return -1
 
-def handle_mitigation_event(_ev, _syst):
+def handle_mitigation_event(_ev, _syst, _sim_len):
+    new_events = []
     if _ev.request.type == "UPGRADE":
         pass
     elif _ev.request.type == "REVIVE":
         _syst.services[_ev.srvc].agents[_ev.agent].srvc_rate = _syst.services[_ev.srvc].agents[_ev.agent].original_srvc_rate
+        _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc = _syst.services[_ev.srvc].agents[_ev.agent].srvc_rate
     #### TODO: Does -1 universally capture everything?
-    return -1
+    if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():
+        if not _ev.time + 1 > _sim_len - 1:
+            if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
+                left_over_send_event = event(SENDING_PRIORITY,
+                                            _ev.time + 1,
+                                            SEND,
+                                            _ev.srvc,
+                                            _ev.agent,
+                                            -1)
+                new_events.append(left_over_send_event)
+                _syst.services[_ev.srvc].agents[_ev.agent].send_events[_ev.time + 1] = True
+    return new_events
 
 def handle_timeout_event(_ev, _syst, _sim_len):
     #### TODO: Fill this function.
     new_events = []
-    if _ev.request.id < 0:
+    if _ev.request.syst_id in _syst.services[_ev.srvc].agents[_ev.agent].acked_reqs:
+        lg.info(f"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA - Already responded! {_ev.request.syst_id}")
         return new_events
+    #if _ev.request.id < 0:
+    #    lg.info(f"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA - Already responded! {_ev.request.syst_id}")
+    #    return new_events
     if _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc > 0:
         if not _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
             if not _ev.time in _syst.services[_ev.srvc].agents[_ev.agent].send_events:
@@ -520,6 +551,7 @@ def handle_timeout_event(_ev, _syst, _sim_len):
                 new_events.append(send_event)
             send_req = request_utils.copy_request(_ev.request)
             _syst.services[_ev.srvc].agents[_ev.agent].out_queue.put(send_req)
+            lg.info(f"RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR - Sent a retry - {send_req.syst_id}")
             #### Update the retried reqs measurements
             _syst.services[_ev.srvc].retried_reqs += 1
             _syst.services[_ev.srvc].agents[_ev.agent].retried_reqs += 1
