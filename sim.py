@@ -8,6 +8,7 @@ import event_utils
 import system_utils
 import failure_utils
 import template_utils
+import measurement_utils
 import debug_utils
 import plot_utils
 import backoff_utils
@@ -22,7 +23,7 @@ def start_sim(args: argparse.Namespace):
     #### Initiate the system
     syst = system_utils.generate_system()
     #### Generate the client requests
-    reqs = client_utils.issue_client_requests(args.sim_len, args.num_reqs, args.load)
+    reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
     debug_utils.print_unwrapped(reqs)
     #### Enter the client requests into the event priority queue.
     event_utils.issue_client_events(events, reqs)
@@ -65,14 +66,23 @@ def start_sim(args: argparse.Namespace):
     plot_utils.plot_measurements(syst, args)
     
     #plot_utils.plot_list(syst.dropped_reqs)
+    if args.issue_failures:
+        lg.warning("Logging metastability!")
+        slope_responded, slope_retried = measurement_utils.is_metastable(syst, failures[0].time)
+    else:
+        slope_responded, slope_retried = measurement_utils.is_metastable(syst, 1)
+    if args.exp_no > 0:
+        if not slope_responded == 0:
+            template_utils.write_to_file("./Experiment_results/exp"+str(args.exp_no)+".txt", str(slope_retried) + " " + str(slope_responded) + " " + str(slope_retried / slope_responded) + "\n")
+        else:
+            template_utils.write_to_file("./Experiment_results/exp"+str(args.exp_no)+".txt", str(slope_retried) + " " + str(slope_responded) + " " + str(-1) + "\n")
 
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)
-    lg.basicConfig(filename= "log.txt",
-                    filemode='a',
-                    format = "%(filename)s:%(lineno)d %(message)s", 
-                    datefmt='%H:%M:%S',
-                    level = lg.DEBUG)
+    ##### To clear the contents of the file:
+    log_file = open("log.txt", 'w')
+    log_file.close()
+    lg.basicConfig(filename="log.txt", format = "%(filename)s:%(lineno)d %(message)s", level = lg.WARNING)
     
     #### Parse arguments:
     ########## 1. Simulation length
@@ -82,10 +92,18 @@ if __name__ == "__main__":
     ########## 5. The spec for each agent
     parser = argparse.ArgumentParser()
     parser.add_argument_group('General')
+    parser.add_argument('--exp_no',
+                        type=int,
+                        required=True,
+                        help='The number of the experiment to run. Zero indicates manual runs.')
+    parser.add_argument('--input_duration',
+                        type=int,
+                        required=True,
+                        help='The duration of imposing the system to input.')
     parser.add_argument('--sim_len',
                         type=int,
                         required=True,
-                        help='The length of the simulation.')
+                        help='The length of the simulation. It allows things to cool off after the input phase.')
     parser.add_argument('--num_reqs',
                         type=int,
                         required=True,
@@ -145,6 +163,10 @@ if __name__ == "__main__":
                         type=int,
                         required=True,
                         help='Whether to plot the dropped requests for each service.')
+    parser.add_argument('--plot_enabled',
+                        type=int,
+                        required=True,
+                        help="A general flag to enable or disable plots.")
 
     args = parser.parse_args()
     #network_delay = 1

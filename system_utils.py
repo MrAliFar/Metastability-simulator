@@ -94,7 +94,7 @@ class agent:
         #### The map taking account of whether a send event has been added to the agent's
         #### events at a particular time slot.
         self.send_events = dict()
-        self.acked_events = dict()
+        self.acked_reqs = dict()
 
 def generate_system():
     """

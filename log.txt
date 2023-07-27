@@ -1,0 +1,3 @@
+sim.py:65 Logging metastability!
+measurement_utils.py:10 The average slope of responded_reqs is: 0.48823529411764705
+measurement_utils.py:16 The average slope of retried_reqs is: 3.6823529411764704
