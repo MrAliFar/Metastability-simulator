@@ -2,6 +2,7 @@ from queue import Queue
 import logging as lg
 
 import template_utils
+import monitor_utils
 
 class system:
     def __init__(self):
@@ -16,6 +17,7 @@ class system:
         #### A dictionary taking account of the ids of the responded requests.
         self.responded_reqs_ids = dict()
         self.retried_reqs = []
+        self.monitor = monitor(self)
 
     
     def create_topology(self):

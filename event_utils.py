@@ -7,6 +7,7 @@ import request_utils
 import template_utils
 import debug_utils
 import backoff_utils
+import monitor_utils
 
 #### Priorities
 FAILURE_PRIORITY = 90
@@ -249,6 +250,16 @@ def handle_serve_event(_ev, _syst, _sim_len):
                         _syst.services[_ev.srvc].agents[_ev.agent].served_reqs += 1
                         #### Update the online service capacity.
                         _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc += -1
+                        if req.type == request_utils.MONITOR:
+                            _syst.monitor.process_monitor_req(_ev, _syst, _req)
+                            if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
+                                in_queue_is_empty = True
+                                out_queue_is_full = True
+                                break
+                            if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
+                                in_queue_is_empty = True
+                                out_queue_is_full = True
+                                break
                         if req.type == request_utils.ACK:
                             #lg.info("ACK!")
                             for requ in _syst.services[_ev.srvc].agents[_ev.agent].pending_bag:

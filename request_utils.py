@@ -4,6 +4,8 @@ import logging as lg
 EXTERNAL = "External"
 INTERNAL = "Internal"
 ACK = "Ack"
+MONITOR = "Monitor"
+MONITORRES = "MonitorRespond"
 
 class request:
     def __init__(self, _type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
@@ -40,6 +42,11 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
         - A request.
     """
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
+
+def create_monitor_request(_type, _origin, _timeslot, _syst_id, _info):
+    _req = create_request(request_utils.MONITORRES, Null, Null, NUll, _timeslot, _syst_id)
+    _req.monitor_info = _info
+    return _req
 
 def copy_request(_req: request):
     _type = _req.type
