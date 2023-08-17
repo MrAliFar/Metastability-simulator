@@ -12,16 +12,15 @@ import measurement_utils
 import debug_utils
 import plot_utils
 import backoff_utils
+import monitor_utils
 
 def start_sim(args: argparse.Namespace):
 #def start_sim(_network_delay, _sim_len, _num_reqs):
     #### This is the main event data structure: index i is the priority queue
     #### for the events of time slot i.
-    events = []
-    for _ in range(args.sim_len):
-        events.append([])
     #### Initiate the system
-    syst = system_utils.generate_system()
+    syst = system_utils.generate_system(args.sim_len)
+    events = syst.events
     #### Generate the client requests
     reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
     debug_utils.print_unwrapped(reqs)
@@ -37,6 +36,8 @@ def start_sim(args: argparse.Namespace):
     if args.issue_mitigations:
         mitigations = failure_utils.get_mitigations()
         event_utils.issue_mitigation_events(events, mitigations)
+    #### Initiate monitor check
+    syst.monitor.start_new_round(syst, 3)
     #### Start the simulation
     for i in range(args.sim_len):
         #lg.info(f"time is {i}")

@@ -30,6 +30,8 @@ class request:
         #### Does this request need a response? This could be set via comparing
         #### the first and final elements of the request's communication pattern.
         self.requires_response = False
+        #### Monitor request related info
+        self.monitor_info = None
 
 def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
     """
@@ -43,8 +45,8 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     """
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
 
-def create_monitor_request(_type, _origin, _timeslot, _syst_id, _info):
-    _req = create_request(request_utils.MONITORRES, Null, Null, NUll, _timeslot, _syst_id)
+def create_monitor_request(_type,  _timeslot, _syst_id, _info):
+    _req = create_request(MONITOR, None, None, None, _timeslot, _syst_id)
     _req.monitor_info = _info
     return _req
 
@@ -57,3 +59,14 @@ def copy_request(_req: request):
     _syst_id = _req.syst_id
     dup_req = request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     return dup_req
+
+
+def create_monitor_respond_request(_type, _timeslot,  _info):
+    """
+    A wrapper around to creat request with type Monitor or MonitorRespond, 
+    which contains extra information
+    """
+    _req = create_request(MONITORRES, None, None, None, _timeslot, 9999)
+    _req.monitor_info = _info
+    return _req
+    

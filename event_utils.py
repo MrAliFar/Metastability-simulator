@@ -260,6 +260,16 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
                                 break
+                        if req.type == request_utils.MONITORRES:
+                            _syst.monitor.get_response(_req)
+                            if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
+                                in_queue_is_empty = True
+                                out_queue_is_full = True
+                                break
+                            if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
+                                in_queue_is_empty = True
+                                out_queue_is_full = True
+                                break
                         if req.type == request_utils.ACK:
                             #lg.info("ACK!")
                             for requ in _syst.services[_ev.srvc].agents[_ev.agent].pending_bag:
@@ -464,6 +474,20 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
                                 RECEIVE,
                                 req.pattern[req.hop],
                                 req.origin,
+                                req)
+            elif req.type == request_utils.MONITOR:
+                New_event = event(RECEIVING_PRIORITY,
+                                _ev.time + _network_delay,
+                                RECEIVE,
+                                req.monitor_info.ser,
+                                req.monitor_info.agt,
+                                req)
+            elif req.type == request_utils.MONITOR_RESPOND:
+                New_event = event(RECEIVING_PRIORITY,
+                                _ev.time + _network_delay,
+                                RECEIVE,
+                                _syst.monitor_address[0],
+                                _syst.monitor_address[1],
                                 req)
             new_events.append(new_event)
             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():

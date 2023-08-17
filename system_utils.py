@@ -17,7 +17,9 @@ class system:
         #### A dictionary taking account of the ids of the responded requests.
         self.responded_reqs_ids = dict()
         self.retried_reqs = []
-        self.monitor = monitor(self)
+        self.monitor = None
+        self.monitor_address = [0,0]
+        self.events = []
 
     
     def create_topology(self):
@@ -98,11 +100,14 @@ class agent:
         self.send_events = dict()
         self.acked_reqs = dict()
 
-def generate_system():
+def generate_system(_len):
     """
     The interface provided by the package to other packages that need to create a system.
     """
     syst = system()
     syst.create_topology()
     syst.set_services()
+    syst.monitor = monitor_utils.monitor(syst.services)
+    for _ in range(_len):
+        syst.events.append([])
     return syst
