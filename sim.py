@@ -46,6 +46,9 @@ def start_sim(args: argparse.Namespace):
         
         # refresh timeoutchange for every agent here
         backoff_utils.timeout_change_newtimeslot(syst)
+        if (args.monitor_policy == "HEART_BEAT"):
+            if(i % 10 == 0):
+                syst.monitor.start_new_round(syst, i)
         
         ####handle events starting from timeslot 1
         if len(events[i]) == 0:
@@ -116,7 +119,7 @@ if __name__ == "__main__":
     parser.add_argument('--load',
                         type=str,
                         required=True,
-                        choices=['AUTO', 'LOAD_SHOCK'],
+                        choices=['AUTO', 'LOAD_SHOCK', 'EMPTY'],
                         help='The type of the load, e.g., automatic, load shock, etc.')
     parser.add_argument_group('Failure-Flags')
     parser.add_argument('--issue_failures',
@@ -168,6 +171,11 @@ if __name__ == "__main__":
                         type=int,
                         required=True,
                         help="A general flag to enable or disable plots.")
+    parser.add_argument('--monitor_policy',
+                        type=str,
+                        required=True,
+                        choices=['PING', 'HEART_BEAT'],
+                        help="Which policy monitor should operate on.")
 
     args = parser.parse_args()
     #network_delay = 1

@@ -55,6 +55,8 @@ def generate_requests(_policy):
                 syst_id_cntr += 1
     elif _policy == "COMBO":
         pass
+    elif _policy == 'EMPTY':
+        pass
     return reqs
 
 #issue_client_requests([], 5)

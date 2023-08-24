@@ -176,7 +176,7 @@ def handle_event(_ev, _syst, _cur_time, _network_delay, _sim_len):
     if _ev.type == CLIENT_REQUEST:
         return handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len)
     elif _ev.type == SERVE:
-        return handle_serve_event(_ev, _syst, _sim_len)
+        return handle_serve_event(_ev, _syst,  _cur_time, _sim_len)
     elif _ev.type == RECEIVE:
         return handle_receive_event(_ev, _syst)
     elif _ev.type == SEND:
@@ -214,7 +214,7 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
         #debug_utils.print_unwrapped([new_event])
         return [new_event]
 
-def handle_serve_event(_ev, _syst, _sim_len):
+def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
     lg.info(f"SSSSSSSSSSSSSSSSSSSSSSSS - serve event - service: {_ev.srvc}  - agent: {_ev.agent}")
     #### Might need to add a pending request in the pending queue.
     out_queue_is_full = False
@@ -251,7 +251,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                         #### Update the online service capacity.
                         _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc += -1
                         if req.type == request_utils.MONITOR:
-                            _syst.monitor.process_monitor_req(_ev, _syst, _req)
+                            print("!!!!get monitor req")
+                            _syst.monitor.process_monitor_req(_ev, _syst, req, _cur_time)
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
@@ -260,7 +261,8 @@ def handle_serve_event(_ev, _syst, _sim_len):
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
                                 break
-                        if req.type == request_utils.MONITORRES:
+                        if req.type == request_utils.MONITORRESPOND:
+                            print("!!!!get monitor respond")
                             _syst.monitor.get_response(_req)
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
@@ -457,6 +459,7 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
     while not out_queue_is_empty:
         for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].send_rate):
             #lg.info(f"Send--Get - Input queue of agent {_ev.agent} in service {_ev.srvc}")
+            print("process sending event now")
             req = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.get()
             req.hop = req.hop + 1
             if req.type == request_utils.EXTERNAL:
@@ -476,14 +479,14 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
                                 req.origin,
                                 req)
             elif req.type == request_utils.MONITOR:
-                New_event = event(RECEIVING_PRIORITY,
+                new_event = event(RECEIVING_PRIORITY,
                                 _ev.time + _network_delay,
                                 RECEIVE,
-                                req.monitor_info.ser,
-                                req.monitor_info.agt,
+                                req.monitor_info.from_ser,
+                                req.monitor_info.from_agt,
                                 req)
             elif req.type == request_utils.MONITOR_RESPOND:
-                New_event = event(RECEIVING_PRIORITY,
+                new_event = event(RECEIVING_PRIORITY,
                                 _ev.time + _network_delay,
                                 RECEIVE,
                                 _syst.monitor_address[0],

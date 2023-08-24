@@ -6,7 +6,7 @@ python3 sim.py \
 --sim_len 200 \
 --num_reqs 200 \
 --network_delay 2 \
---load AUTO \
+--load EMPTY \
 --issue_failures 1 \
 --issue_mitigations 1 \
 --plot_dropped 0 \
@@ -18,4 +18,5 @@ python3 sim.py \
 --plot_failures 1 \
 --plot_mitigations 1 \
 --plot_service_dropped 1 \
---plot_enabled 1
+--plot_enabled 1 \
+--monitor_policy HEART_BEAT \

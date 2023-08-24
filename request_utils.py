@@ -5,7 +5,8 @@ EXTERNAL = "External"
 INTERNAL = "Internal"
 ACK = "Ack"
 MONITOR = "Monitor"
-MONITORRES = "MonitorRespond"
+MONITORRESPOND = "MonitorRespond"
+BigEnoughNumber = 999
 
 class request:
     def __init__(self, _type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
@@ -46,7 +47,7 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
 
 def create_monitor_request(_type,  _timeslot, _syst_id, _info):
-    _req = create_request(MONITOR, None, None, None, _timeslot, _syst_id)
+    _req = create_request(MONITOR, [BigEnoughNumber,BigEnoughNumber], [0, 0], None, _timeslot, _syst_id)
     _req.monitor_info = _info
     return _req
 
@@ -66,7 +67,7 @@ def create_monitor_respond_request(_type, _timeslot,  _info):
     A wrapper around to creat request with type Monitor or MonitorRespond, 
     which contains extra information
     """
-    _req = create_request(MONITORRES, None, None, None, _timeslot, 9999)
+    _req = create_request(MONITORRESPOND, None, None, None, _timeslot, 9999)
     _req.monitor_info = _info
     return _req
     
