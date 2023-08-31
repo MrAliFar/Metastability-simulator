@@ -37,7 +37,7 @@ def start_sim(args: argparse.Namespace):
         mitigations = failure_utils.get_mitigations()
         event_utils.issue_mitigation_events(events, mitigations)
     #### Initiate monitor check
-    syst.monitor.start_new_round(syst, 3)
+    # syst.monitor.start_new_round(syst, 3)
     #### Start the simulation
     for i in range(args.sim_len):
         #lg.info(f"time is {i}")
@@ -47,9 +47,12 @@ def start_sim(args: argparse.Namespace):
         # refresh timeoutchange for every agent here
         backoff_utils.timeout_change_newtimeslot(syst)
         if (args.monitor_policy == "HEART_BEAT"):
-            if(i % 10 == 0):
-                syst.monitor.start_new_round(syst, i)
-        
+            if(i % 7 == 0):
+                syst.monitor.start_new_heartbeat_round(syst, i)
+        if (args.monitor_policy == "PING"):
+            if(i % 7 == 0):
+                syst.monitor.start_new_ping_round(syst, i)
+        print("finish")
         ####handle events starting from timeslot 1
         if len(events[i]) == 0:
             continue
@@ -174,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument('--monitor_policy',
                         type=str,
                         required=True,
-                        choices=['PING', 'HEART_BEAT'],
+                        choices=['PING', 'HEART_BEAT','NONE'],
                         help="Which policy monitor should operate on.")
 
     args = parser.parse_args()

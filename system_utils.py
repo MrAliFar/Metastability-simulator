@@ -58,6 +58,7 @@ class service:
         self.served_client_reqs = 0
         self.retried_reqs = 0
         self.responded_reqs = 0
+        self.dropped_monitor_reqs = 0
 
 class agent:
     def __init__(self, _id, _in_queue_cap, _out_queue_cap, _pending_bag_cap, _srvc_rate, _send_rate, _timeout, _backoff_behavior):

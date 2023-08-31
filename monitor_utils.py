@@ -37,21 +37,30 @@ class monitor:
         
         
     
-    def start_new_round(self, _syst, _current_timeslot):
+    def start_new_ping_round(self, _syst, _current_timeslot):
         """
         routinely called to give a conclusion of current agents status
         ////currently only called when initializing the system
         """
-        # for _ser in self.respond_status:
-        #     for _agt in _ser:
-        #         respond_status[_ser][_agt] = 
-        # print("start new round")
         self.init_ts = _current_timeslot
-        # print()
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
                 self.current_reqs[_service][_agent] = self.new_monitor_request(_service, _agent, _current_timeslot)
                 operating_system_utils.operating_system.send_monitor_event(_syst,self.current_reqs[_service][_agent], _current_timeslot)
+    
+    def start_new_heartbeat_round(self, _syst, _current_timeslot):
+        """
+        routinely called to give a conclusion of current agents status
+        ////currently only called when initializing the system
+        """
+        self.init_ts = _current_timeslot
+        for _service in range(len(self.topology)):
+            for _agent in range(len(self.topology[_service])):
+                _theagent = _syst.services[_service].agents[_agent]
+                _info = monitor_info.creat_monitor_info(_theagent, _current_timeslot, _current_timeslot)
+                self.current_reqs[_service][_agent] = self.new_monitor_request(_service, _agent, _current_timeslot)
+                operating_system_utils.operating_system.send_monitor_respond(_syst, self.current_reqs[_service][_agent], _current_timeslot,_service, _agent)
+
         
     def new_monitor_request(self, _target_service_id, _target_agent_id, _timeslot):
         """
@@ -97,7 +106,7 @@ class monitor:
         print("with "+ str(_info))
         lg.info(_info)
         _new_req = request_utils.create_monitor_request(request_utils.MONITORRESPOND, None, _cur_time ,_info)
-        operating_system_utils.operating_system.send_monitor_respond(_syst, _new_req, _cur_time, _ev )
+        operating_system_utils.operating_system.send_monitor_respond(_syst, _new_req, _cur_time, _ev.srvc, _ev.agent)
         return
 
 class monitor_info:

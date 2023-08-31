@@ -544,6 +544,7 @@ def handle_measurement_event(_syst, _cur_time):
     _syst.responded_reqs.append(num_responded)
     return -1
 
+
 def handle_failure_event(_ev, _syst):
     if _ev.request.type == "DEGRADE":
         _syst.services[_ev.srvc].agents[_ev.agent].srvc_rate = ceil(_syst.services[_ev.srvc].agents[_ev.agent].srvc_rate * _ev.request.degradation_factor)

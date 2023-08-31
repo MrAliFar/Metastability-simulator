@@ -6,8 +6,8 @@ python3 sim.py \
 --sim_len 200 \
 --num_reqs 200 \
 --network_delay 2 \
---load EMPTY \
---issue_failures 1 \
+--load LOAD_SHOCK \
+--issue_failures 0 \
 --issue_mitigations 1 \
 --plot_dropped 0 \
 --plot_receive_dropped 0 \
@@ -19,4 +19,4 @@ python3 sim.py \
 --plot_mitigations 1 \
 --plot_service_dropped 1 \
 --plot_enabled 1 \
---monitor_policy HEART_BEAT \
+--monitor_policy NONE \
