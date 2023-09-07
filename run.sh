@@ -19,4 +19,5 @@ python3 sim.py \
 --plot_mitigations 1 \
 --plot_service_dropped 1 \
 --plot_enabled 1 \
---monitor_policy NONE \
+--monitor_policy HEART_BEAT \
+--monitor_frequency 7\

@@ -47,10 +47,10 @@ def start_sim(args: argparse.Namespace):
         # refresh timeoutchange for every agent here
         backoff_utils.timeout_change_newtimeslot(syst)
         if (args.monitor_policy == "HEART_BEAT"):
-            if(i % 7 == 0):
+            if(i % args.monitor_frequency == 0):
                 syst.monitor.start_new_heartbeat_round(syst, i)
         if (args.monitor_policy == "PING"):
-            if(i % 7 == 0):
+            if(i % args.monitor_frequency == 0):
                 syst.monitor.start_new_ping_round(syst, i)
         print("finish")
         ####handle events starting from timeslot 1
@@ -179,6 +179,10 @@ if __name__ == "__main__":
                         required=True,
                         choices=['PING', 'HEART_BEAT','NONE'],
                         help="Which policy monitor should operate on.")
+    parser.add_argument('--monitor_frequency',
+                        type=int,
+                        required=True,
+                        help="How often monitor takes action.")
 
     args = parser.parse_args()
     #network_delay = 1
