@@ -9,9 +9,12 @@ def calculate_timeoutslot(_ev, _syst):
         return _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
 
 def timeout_backoff(_ev, _syst):
+    timeout_backoff_t(_ev.srvc, _ev.agent, _syst)
+    
+def timeout_backoff_t(_serv, _agent, _syst):
     
     """
-    A function that calculates corresponding future timeoutslot base on current backoff policy
+    A function that modifies backoff  base on current backoff policy
     
     Input:
         - ev: The event that potentially timeout in the future
@@ -19,21 +22,18 @@ def timeout_backoff(_ev, _syst):
     Output:
         - the next timeout slot number
     """
-    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "EXP":
-        _syst.services[_ev.srvc].agents[_ev.agent].timeout = _syst.services[_ev.srvc].agents[_ev.agent].timeout * 2
-    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "LIN":
-        _syst.services[_ev.srvc].agents[_ev.agent].timeout = _syst.services[_ev.srvc].agents[_ev.agent].timeout + 1
-    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "RAND":
-        _syst.services[_ev.srvc].agents[_ev.agent].timeout = _syst.services[_ev.srvc].agents[_ev.agent].timeout * 2
-        return _ev.time + random.randint( 1 , _syst.services[_ev.srvc].agents[_ev.agent].timeout)
-    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "BUCK":
-        if _syst.services[_ev.srvc].agents[_ev.agent].timeout_bucket < 0 : 
-            #### TODO: would return 0 safe
+    if _syst.services[_serv].agents[_agent].backoff_behavior == "EXP":
+        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 40)
+    if _syst.services[_serv].agents[_agent].backoff_behavior == "ADD":
+        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout + 1, 40)
+    if _syst.services[_serv].agents[_agent].backoff_behavior == "RAND":
+        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 40)
+    if _syst.services[_serv].agents[_agent].backoff_behavior == "BUCK":
+        if _syst.services[_serv].agents[_agent].timeout_bucket < 0 : 
             return 0
-        else :
+        else:
+            """timeout must be at least in the future"""
             _syst.services[_ev.srvc].agents[_ev.agent].timeout_bucket -= 1
-    
-    return _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
 
 
 

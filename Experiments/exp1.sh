@@ -14,7 +14,7 @@ for i in {50..250}
 do
     for j in {1..20}
     do
-    python3 sim.py \
+    python3 sim.py \z
 --exp_no 1 \
 --input_duration 200 \
 --sim_len 200 \

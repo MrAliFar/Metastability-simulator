@@ -74,7 +74,7 @@ def parse_agent_config():
     There are a few general backoff types for now:
         + CONST : constant timeout latency
         + EXP:  exponential backoff
-        + LIN: linearly increase timeout time
+        + ADD: linearly increase timeout time
         + BUCK: constant latency but only timeout if there is token
         + RAND: exponential backoff with jitter
     The rest designate in_queue_cap, out_queue_cap, pending_queue_cap, srvc_rate, and

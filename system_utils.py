@@ -20,6 +20,7 @@ class system:
         self.monitor = None
         self.monitor_address = [0,0]
         self.events = []
+        self.served_monitor_reqs = []
 
     
     def create_topology(self):
@@ -100,6 +101,7 @@ class agent:
         #### events at a particular time slot.
         self.send_events = dict()
         self.acked_reqs = dict()
+        self.served_monitor_req = 0
 
 def generate_system(_len):
     """

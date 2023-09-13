@@ -47,11 +47,20 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
 
 def create_monitor_request(_type,  _timeslot, _syst_id, _info):
+    """
+    A wrapper around create request for request with monitor type
+    """
     _req = create_request(MONITOR, [BigEnoughNumber,BigEnoughNumber], [0, 0], None, _timeslot, _syst_id)
     _req.monitor_info = _info
     return _req
 
 def copy_request(_req: request):
+    if(_req.type == MONITOR ):
+        dup_req = create_monitor_request(_req.type,  _req.timeslot, _req.syst_id, _req.info)
+        return dup_req
+    if(_req.type == MONITORRESPOND):
+        dup_req = create_monitor_request(_req.type,  _req.timeslot, _req.info)
+        return dup_req
     _type = _req.type
     _pattern = _req.pattern
     _ack_pattern = _req.ack_pattern
@@ -64,7 +73,7 @@ def copy_request(_req: request):
 
 def create_monitor_respond_request(_type, _timeslot,  _info):
     """
-    A wrapper around to creat request with type Monitor or MonitorRespond, 
+    A wrapper around to create request with type MonitorRespond, 
     which contains extra information
     """
     _req = create_request(MONITORRESPOND, None, None, None, _timeslot, 9999)

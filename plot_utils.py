@@ -47,5 +47,6 @@ def plot_measurements(_syst, args):
         if args.issue_failures and args.plot_failures:
             mitigations = template_utils.parse_mitigations()
             plt.axvline(x=mitigations[0][2], color="g")
+        plot_list(_syst.served_monitor_reqs, "Monitor", "D")
         plt.legend()
         plt.show()

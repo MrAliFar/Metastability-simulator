@@ -87,9 +87,9 @@ def start_sim(args: argparse.Namespace):
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)
     ##### To clear the contents of the file:
-    log_file = open("log.txt", 'w')
-    log_file.close()
-    lg.basicConfig(filename="log.txt", format = "%(filename)s:%(lineno)d %(message)s", level = lg.WARNING)
+    # log_file = open("log.txt", 'w')
+    # log_file.close()
+    lg.basicConfig(filename="log.txt", format = "%(filename)s:%(lineno)d %(message)s", level = lg.DEBUG)
     
     #### Parse arguments:
     ########## 1. Simulation length

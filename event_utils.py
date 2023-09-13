@@ -253,6 +253,8 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
                         if req.type == request_utils.MONITOR:
                             print("!!!!get monitor req")
                             _syst.monitor.process_monitor_req(_ev, _syst, req, _cur_time)
+                            _syst.services[_ev.srvc].agents[_ev.agent].served_monitor_req += 1
+                            _syst.services[_ev.srvc].agents[_ev.agent].served_reqs -= 1
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
@@ -263,7 +265,7 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
                                 break
                         if req.type == request_utils.MONITORRESPOND:
                             print("!!!!get monitor respond")
-                            _syst.monitor.get_response(_req)
+                            _syst.monitor.get_response(_req, _syst)
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
@@ -459,7 +461,7 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
     while not out_queue_is_empty:
         for _ in range(_syst.services[_ev.srvc].agents[_ev.agent].send_rate):
             #lg.info(f"Send--Get - Input queue of agent {_ev.agent} in service {_ev.srvc}")
-            print("process sending event now")
+            # print("process sending event now")
             req = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.get()
             req.hop = req.hop + 1
             if req.type == request_utils.EXTERNAL:
@@ -542,6 +544,12 @@ def handle_measurement_event(_syst, _cur_time):
     for i in range(len(_syst.services)):
         num_responded += _syst.services[i].responded_reqs
     _syst.responded_reqs.append(num_responded)
+    
+    num_monitor = 0
+    for i in range(len(_syst.services)):
+        for j in range(len(_syst.services[i].agents)):
+            num_monitor += _syst.services[i].agents[j].served_monitor_req
+    _syst.served_monitor_reqs.append(num_monitor)
     return -1
 
 

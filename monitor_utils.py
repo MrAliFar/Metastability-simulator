@@ -20,6 +20,7 @@ class monitor:
         self.init_check_ts = 0
         self.agent_list = []
         self.req_id_tracker = 9999 #set large to not duplicate with agents' id
+        self.active = True
         
         
         for _service in _services:
@@ -57,7 +58,7 @@ class monitor:
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
                 _theagent = _syst.services[_service].agents[_agent]
-                _info = monitor_info.creat_monitor_info(_theagent, _current_timeslot, _current_timeslot)
+                _info = monitor_info.creat_monitor_info(_service, _agent, _theagent, _current_timeslot, _current_timeslot)
                 self.current_reqs[_service][_agent] = self.new_monitor_request(_service, _agent, _current_timeslot)
                 operating_system_utils.operating_system.send_monitor_respond(_syst, self.current_reqs[_service][_agent], _current_timeslot,_service, _agent)
 
@@ -79,7 +80,7 @@ class monitor:
         return temp_req
         
         
-    def get_response(self, _request):
+    def get_response(self, _request, _syst):
         """
         Called when the agent recive a request with type MointorRespond
         Would store information inside monitor's memory
@@ -89,10 +90,11 @@ class monitor:
         else:
             _info = _request._monitor_info
             lg.info("monitor response get" )
+            lg.info(str(_info))
             print(str(_info))
             if _info.init_time == self.init_check_ts:
                 self.respond_status[_info.from_ser][_info.from_agt] = _info
-            
+            self.active_monitor_control(_syst, _info)
         return
     
     
@@ -102,19 +104,38 @@ class monitor:
         """
         # print("start process event")
         _agent = _syst.services[_ev.srvc].agents[_ev.agent]
-        _info = monitor_info.creat_monitor_info(_agent, _req.time_slot, _cur_time)
+        _info = monitor_info.creat_monitor_info(_ev.srvc, _ev.agent, _agent, _req.time_slot, _cur_time)
         print("with "+ str(_info))
         lg.info(_info)
         _new_req = request_utils.create_monitor_request(request_utils.MONITORRESPOND, None, _cur_time ,_info)
         operating_system_utils.operating_system.send_monitor_respond(_syst, _new_req, _cur_time, _ev.srvc, _ev.agent)
         return
-
+    
+    def active_monitor_control(self, _syst, _info):
+        ###
+        # If the monitor is actively in load control, modify timout for corresponding notes
+        if(self.active == False):
+            return
+        
+        if(self.check_busyness(_info)):
+            backoff_utils.timeout_backoff_t( _info.from_ser,_info.from_agt, _syst)
+        
+        return
+    
+    def check_busyness(self, _info):
+        """check if the given info shows sign that they are busy"""
+        if(_info.memory_ratio > 0.8):
+            return True
+        if(_info.in_queue_ratio > 0.9):
+            return True
+        return False
 class monitor_info:
     def __init__(self):
         self.in_queue_size = 0
         self.out_queue_size = 0
         self.in_queue_ratio = 0
         self.out_queue_ratio = 0
+        self.memory_ratio = 0
         self.init_time = 0
         self.from_ser = 0
         self.from_agt = 0
@@ -126,18 +147,21 @@ class monitor_info:
         _info.from_agt = _from_agt
         return _info
     
-    def creat_monitor_info( _agent, init_time, arrive_time):
+    def creat_monitor_info(_from_ser, _from_agt, _agent, init_time, arrive_time):
         _info = monitor_info()
+        _info.from_ser = _from_ser
+        _info.from_agt = _from_agt
         _info.in_queue_size = _agent.in_queue.qsize()
         _info.out_queue_size = _agent.out_queue.qsize()
-        _info.in_queue_ratio = _agent.in_queue.qsize() / _agent.in_queue.maxsize
-        _info.out_queue_ratio = _agent.out_queue.qsize()/ _agent.out_queue.maxsize
+        _info.in_queue_ratio = float(_agent.in_queue.qsize()) / _agent.in_queue.maxsize
+        _info.out_queue_ratio = float(_agent.out_queue.qsize())/ _agent.out_queue.maxsize
         _info.init_time = init_time
         _info.arrive_time = arrive_time
+        _info.memory_ratio = float(len(_agent.pending_bag))/_agent.pending_bag_cap
         return _info
         
     def __str__(self):
-        return 'INFO: \n in:' + str(self.in_queue_size) + ', out :' +  str(self.out_queue_size) + ' , from: '+ str(self.from_ser) + str(self.from_agt)
+        return 'INFO: \n in:' + str(self.in_queue_size) + ', out :' +  str(self.out_queue_size) +',memory :' + str(self.memory_ratio) + ' , from: '+ str(self.from_ser) + str(self.from_agt)
 
 def calculate_avg_mem_use(_ev, _syst):
     for _service in _syst.services:
