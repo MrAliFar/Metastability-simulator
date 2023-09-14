@@ -163,13 +163,35 @@ class monitor_info:
     def __str__(self):
         return 'INFO: \n in:' + str(self.in_queue_size) + ', out :' +  str(self.out_queue_size) +',memory :' + str(self.memory_ratio) + ' , from: '+ str(self.from_ser) + str(self.from_agt)
 
+class monitor_change:
+    def __init__(self):
+        ### supported things to change
+        self.backoff = 0
+        self.drop_pending = 0
+        ### info for identity
+        self.target_ser = 0
+        self.target_agt = 0
+    
+    def create_default_monitor_change(b_change, d_change, to_ser,  to_agt):
+        _change = monitor_change()
+        _change.backoff = b_change
+        _change.drop_pending = d_change
+        _change.target_ser = to_ser
+        _change.target_agt = to_agt
+
+    def process_monitor_change(_syst, _change):
+        _agent = _syst.services[_change.target_ser].agents[_change.target_agt]
+        _agent.timeout -= _change.backoff
+        if()
+
+
 def calculate_avg_mem_use(_ev, _syst):
     for _service in _syst.services:
         for _theagent in _service.agents:
-            _theagents
+            _theagent
             
             
 def calculate_avg_queue_use(_ev, _syst):
     for _service in _syst.services:
         for _theagent in _service.agents:
-            _theagents
+            _theagent

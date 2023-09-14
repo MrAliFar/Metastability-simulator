@@ -6,6 +6,7 @@ INTERNAL = "Internal"
 ACK = "Ack"
 MONITOR = "Monitor"
 MONITORRESPOND = "MonitorRespond"
+CHANGE = "Change"
 BigEnoughNumber = 999
 
 class request:
@@ -33,6 +34,7 @@ class request:
         self.requires_response = False
         #### Monitor request related info
         self.monitor_info = None
+        self.monitor_change = None
 
 def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
     """
