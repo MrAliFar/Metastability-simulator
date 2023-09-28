@@ -12,9 +12,9 @@ cd ..
 LEN=20
 for i in {50..250}
 do
-    for j in {1..20}
+    for j in {1..5}
     do
-    python3 sim.py \z
+    python3 sim.py \
 --exp_no 1 \
 --input_duration 200 \
 --sim_len 200 \
@@ -32,7 +32,9 @@ do
 --plot_failures 0 \
 --plot_mitigations 0 \
 --plot_service_dropped 0 \
---plot_enabled 0
+--plot_enabled 0 \
+--monitor_policy HEART_BEAT \
+--monitor_frequency 5 
     done
 done
 

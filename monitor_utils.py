@@ -119,7 +119,7 @@ class monitor:
             else:
                 ###schedule a send
                 _change = monitor_change.create_default_monitor_change(3, 0, _info.from_ser, _info.from_agt)
-                print("change is " + str(_change))
+                # print("change is " + str(_change))
                 lg.info(str(_change))
                 new_req = request_utils.create_monitor_change_request( _syst.time,  _change)
                 operating_system_utils.operating_system.default_send(
@@ -133,7 +133,7 @@ class monitor:
         elif _req.type == request_utils.MONITOR_RESPOND:
             _syst.monitor.get_response(_req, _syst)
         elif _req.type == request_utils.CHANGE:
-            print("get a change req")
+            # print("get a change req")
             monitor_change.process_monitor_change(_syst, _req.monitor_change)
         
     def check_busyness(self, _info):

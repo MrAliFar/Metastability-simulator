@@ -8,6 +8,7 @@ import template_utils
 import debug_utils
 import backoff_utils
 import monitor_utils
+import garbage_collect_util
 
 #### Priorities
 FAILURE_PRIORITY = 90
@@ -270,8 +271,10 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
                                     _syst.services[_ev.srvc].agents[_ev.agent].acked_reqs[req.syst_id] = True
                                     #lg.info(f"len after remove is {len(_syst.services[_ev.srvc].agents[_ev.agent].pending_bag)}")
                                     requ.id = -1
-                                    ##add bucket budget since respond success
+                                    ##extra util function needed to check for each ack
                                     backoff_utils.request_success_timeout_change(_ev, _syst)
+                                    garbage_collect_util.count_garbage(_syst.services[_ev.srvc].agents[_ev.agent])
+                                    garbage_collect_util.check_garbage_status(_syst.services[_ev.srvc].agents[_ev.agent])
                                     break
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True

@@ -103,6 +103,8 @@ class agent:
         self.send_events = dict()
         self.acked_reqs = dict()
         self.served_monitor_req = 0
+        #### Variable used for garbage_collect_util
+        self.garbage_counter = 0
 
 def generate_system(_len):
     """
