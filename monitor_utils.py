@@ -196,8 +196,6 @@ class monitor_change:
 
     def process_monitor_change(_syst, _change):
         _agent = _syst.services[_change.target_ser].agents[_change.target_agt]
-        _agent.timeout -= _change.backoff
-        
         _agent.timeout = max(5,_agent.timeout - _change.backoff)
         if(_change.drop_pending !=0):
             ### do something
