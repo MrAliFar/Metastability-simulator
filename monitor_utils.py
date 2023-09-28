@@ -3,6 +3,7 @@ import random
 import logging as lg
 import request_utils
 import operating_system_utils
+import backoff_utils
 
 
 
@@ -34,7 +35,7 @@ class monitor:
             self.topology.append(templist1)
             self.respond_status.append(tempdic1)
             self.current_reqs.append(tempdic2)
-        # print(self.topology)
+
         
         
     
@@ -58,7 +59,7 @@ class monitor:
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
                 _theagent = _syst.services[_service].agents[_agent]
-                _info = monitor_info.creat_monitor_info(_service, _agent, _theagent, _current_timeslot, _current_timeslot)
+                _info = monitor_info.create_monitor_info(_service, _agent, _theagent, _current_timeslot, _current_timeslot)
                 self.current_reqs[_service][_agent] = self.new_monitor_request(_service, _agent, _current_timeslot)
                 operating_system_utils.operating_system.send_monitor_respond(_syst, self.current_reqs[_service][_agent], _current_timeslot,_service, _agent)
 
@@ -67,14 +68,12 @@ class monitor:
         """
         create a new monitor request with given para
         """
-        _info = monitor_info.creat_default_monitor_info( _target_service_id, _target_agent_id, _timeslot)
+        _info = monitor_info.create_default_monitor_info( _target_service_id, _target_agent_id, _timeslot)
         temp_req = request_utils.create_monitor_request(
-                            request_utils.MONITOR, 
                             _timeslot,
                             self.req_id_tracker,
                             _info
                             )
-        # print("new request created" + temp_req.type )
         self.req_id_tracker += 1
         self.current_reqs[_target_service_id][_target_agent_id] = temp_req
         return temp_req
@@ -85,13 +84,12 @@ class monitor:
         Called when the agent recive a request with type MointorRespond
         Would store information inside monitor's memory
         """
-        if _request.type != request_utils.MONITORRESPOND:
+        if _request.type != request_utils.MONITOR_RESPOND:
             lg.info("monitor response have wrong req type")
         else:
-            _info = _request._monitor_info
+            _info = _request.monitor_info
             lg.info("monitor response get" )
             lg.info(str(_info))
-            print(str(_info))
             if _info.init_time == self.init_check_ts:
                 self.respond_status[_info.from_ser][_info.from_agt] = _info
             self.active_monitor_control(_syst, _info)
@@ -102,12 +100,10 @@ class monitor:
         """
         with the given event, collect info from hardward and send it back to monitor
         """
-        # print("start process event")
         _agent = _syst.services[_ev.srvc].agents[_ev.agent]
-        _info = monitor_info.creat_monitor_info(_ev.srvc, _ev.agent, _agent, _req.time_slot, _cur_time)
-        print("with "+ str(_info))
+        _info = monitor_info.create_monitor_info(_ev.srvc, _ev.agent, _agent, _req.time_slot, _cur_time)
         lg.info(_info)
-        _new_req = request_utils.create_monitor_request(request_utils.MONITORRESPOND, None, _cur_time ,_info)
+        _new_req = request_utils.create_monitor_respond_request( _cur_time, _info)
         operating_system_utils.operating_system.send_monitor_respond(_syst, _new_req, _cur_time, _ev.srvc, _ev.agent)
         return
     
@@ -118,15 +114,33 @@ class monitor:
             return
         
         if(self.check_busyness(_info)):
-            backoff_utils.timeout_backoff_t( _info.from_ser,_info.from_agt, _syst)
+            if(_info.from_ser == _syst.monitor_address[0] and _info.from_agt == _syst.monitor_address[1]):
+                backoff_utils.timeout_backoff_t( _info.from_ser,_info.from_agt, _syst)
+            else:
+                ###schedule a send
+                _change = monitor_change.create_default_monitor_change(3, 0, _info.from_ser, _info.from_agt)
+                print("change is " + str(_change))
+                lg.info(str(_change))
+                new_req = request_utils.create_monitor_change_request( _syst.time,  _change)
+                operating_system_utils.operating_system.default_send(
+                    _syst, new_req, _syst.time, _syst.monitor_address[0],_syst.monitor_address[0], _info.from_ser, _info.from_agt)
         
-        return
-    
+    def monitor_process(self, _ev, _syst, _req, _cur_time):
+        if _req.type == request_utils.MONITOR:
+            self.process_monitor_req(_ev, _syst, _req, _cur_time)
+            _syst.services[_ev.srvc].agents[_ev.agent].served_monitor_req += 1
+            _syst.services[_ev.srvc].agents[_ev.agent].served_reqs -= 1
+        elif _req.type == request_utils.MONITOR_RESPOND:
+            _syst.monitor.get_response(_req, _syst)
+        elif _req.type == request_utils.CHANGE:
+            print("get a change req")
+            monitor_change.process_monitor_change(_syst, _req.monitor_change)
+        
     def check_busyness(self, _info):
         """check if the given info shows sign that they are busy"""
-        if(_info.memory_ratio > 0.8):
+        if(_info.memory_ratio > 0.5):
             return True
-        if(_info.in_queue_ratio > 0.9):
+        if(_info.in_queue_ratio > 0.5):
             return True
         return False
 class monitor_info:
@@ -141,13 +155,13 @@ class monitor_info:
         self.from_agt = 0
         self.arrive_time = 0
         
-    def creat_default_monitor_info( _from_ser, _from_agt, _time):
+    def create_default_monitor_info( _from_ser, _from_agt, _time):
         _info = monitor_info()
         _info.from_ser = _from_ser
         _info.from_agt = _from_agt
         return _info
     
-    def creat_monitor_info(_from_ser, _from_agt, _agent, init_time, arrive_time):
+    def create_monitor_info(_from_ser, _from_agt, _agent, init_time, arrive_time):
         _info = monitor_info()
         _info.from_ser = _from_ser
         _info.from_agt = _from_agt
@@ -178,11 +192,25 @@ class monitor_change:
         _change.drop_pending = d_change
         _change.target_ser = to_ser
         _change.target_agt = to_agt
+        return _change
 
     def process_monitor_change(_syst, _change):
         _agent = _syst.services[_change.target_ser].agents[_change.target_agt]
         _agent.timeout -= _change.backoff
-        if()
+        
+        _agent.timeout = max(5,_agent.timeout - _change.backoff)
+        if(_change.drop_pending !=0):
+            ### do something
+            pass
+    
+    def __str__(self):
+        return 'CHANGE: \n backoff:' + str(self.backoff) + ', drop :' +  str(self.drop_pending) +',from:' +str(self.target_ser) + str(self.target_agt)
+
+
+def type_is_monitor_related(_type):
+    if(_type == request_utils.MONITOR or _type == request_utils.MONITOR_RESPOND or _type == request_utils.CHANGE):
+        return True
+    return False
 
 
 def calculate_avg_mem_use(_ev, _syst):

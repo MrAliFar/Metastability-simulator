@@ -21,6 +21,7 @@ class system:
         self.monitor_address = [0,0]
         self.events = []
         self.served_monitor_reqs = []
+        self.time = 0
 
     
     def create_topology(self):

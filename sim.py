@@ -43,7 +43,7 @@ def start_sim(args: argparse.Namespace):
         #lg.info(f"time is {i}")
         
         #debug_utils.print_list_unwrapped(events[i])
-        
+        syst.time = i
         # refresh timeoutchange for every agent here
         backoff_utils.timeout_change_newtimeslot(syst)
         if (args.monitor_policy == "HEART_BEAT"):
@@ -52,7 +52,7 @@ def start_sim(args: argparse.Namespace):
         if (args.monitor_policy == "PING"):
             if(i % args.monitor_frequency == 0):
                 syst.monitor.start_new_ping_round(syst, i)
-        print("finish")
+        # print("finish")
         ####handle events starting from timeslot 1
         if len(events[i]) == 0:
             continue
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument('--load',
                         type=str,
                         required=True,
-                        choices=['AUTO', 'LOAD_SHOCK', 'EMPTY'],
+                        choices=['AUTO', 'LOAD_SHOCK', 'EMPTY', 'LOAD_SHOCK_STATIC'],
                         help='The type of the load, e.g., automatic, load shock, etc.')
     parser.add_argument_group('Failure-Flags')
     parser.add_argument('--issue_failures',

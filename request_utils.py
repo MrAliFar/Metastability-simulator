@@ -5,7 +5,7 @@ EXTERNAL = "External"
 INTERNAL = "Internal"
 ACK = "Ack"
 MONITOR = "Monitor"
-MONITORRESPOND = "MonitorRespond"
+MONITOR_RESPOND = "Monitor_Respond"
 CHANGE = "Change"
 BigEnoughNumber = 999
 
@@ -48,7 +48,7 @@ def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
     """
     return request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id)
 
-def create_monitor_request(_type,  _timeslot, _syst_id, _info):
+def create_monitor_request( _timeslot, _syst_id, _info):
     """
     A wrapper around create request for request with monitor type
     """
@@ -58,10 +58,13 @@ def create_monitor_request(_type,  _timeslot, _syst_id, _info):
 
 def copy_request(_req: request):
     if(_req.type == MONITOR ):
-        dup_req = create_monitor_request(_req.type,  _req.timeslot, _req.syst_id, _req.info)
+        dup_req = create_monitor_request(  _req.timeslot, _req.syst_id, _req.info)
         return dup_req
-    if(_req.type == MONITORRESPOND):
-        dup_req = create_monitor_request(_req.type,  _req.timeslot, _req.info)
+    if(_req.type == MONITOR_RESPOND):
+        dup_req = create_monitor_respond_request( _req.timeslot, _req.info)
+        return dup_req
+    if(_req.type == CHANGE):
+        dup_req = create_monitor_change_request( _req.timeslot, _req.monitor_change)
         return dup_req
     _type = _req.type
     _pattern = _req.pattern
@@ -73,12 +76,20 @@ def copy_request(_req: request):
     return dup_req
 
 
-def create_monitor_respond_request(_type, _timeslot,  _info):
+def create_monitor_respond_request( _timeslot,  _info):
     """
     A wrapper around to create request with type MonitorRespond, 
     which contains extra information
     """
-    _req = create_request(MONITORRESPOND, None, None, None, _timeslot, 9999)
+    _req = create_request(MONITOR_RESPOND, [BigEnoughNumber,BigEnoughNumber], [0, 0], None, _timeslot, BigEnoughNumber)
     _req.monitor_info = _info
+    return _req
+
+def create_monitor_change_request( _timeslot,  _change):
+    """
+    A wrapper around create request for request with monitor type
+    """
+    _req = create_request(CHANGE, [BigEnoughNumber,BigEnoughNumber], [0, 0], None, _timeslot,BigEnoughNumber )
+    _req.monitor_change = _change
     return _req
     

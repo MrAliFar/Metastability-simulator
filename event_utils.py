@@ -250,22 +250,8 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
                         _syst.services[_ev.srvc].agents[_ev.agent].served_reqs += 1
                         #### Update the online service capacity.
                         _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc += -1
-                        if req.type == request_utils.MONITOR:
-                            print("!!!!get monitor req")
-                            _syst.monitor.process_monitor_req(_ev, _syst, req, _cur_time)
-                            _syst.services[_ev.srvc].agents[_ev.agent].served_monitor_req += 1
-                            _syst.services[_ev.srvc].agents[_ev.agent].served_reqs -= 1
-                            if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
-                                in_queue_is_empty = True
-                                out_queue_is_full = True
-                                break
-                            if _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
-                                in_queue_is_empty = True
-                                out_queue_is_full = True
-                                break
-                        if req.type == request_utils.MONITORRESPOND:
-                            print("!!!!get monitor respond")
-                            _syst.monitor.get_response(_req, _syst)
+                        if (monitor_utils.type_is_monitor_related(req.type)):
+                            _syst.monitor.monitor_process( _ev, _syst, req, _cur_time)
                             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full():
                                 in_queue_is_empty = True
                                 out_queue_is_full = True
@@ -493,6 +479,13 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
                                 RECEIVE,
                                 _syst.monitor_address[0],
                                 _syst.monitor_address[1],
+                                req)
+            elif req.type == request_utils.CHANGE:
+                new_event = event(RECEIVING_PRIORITY,
+                                _ev.time + _network_delay,
+                                RECEIVE,
+                                req.monitor_change.target_ser,
+                                req.monitor_change.target_agt,
                                 req)
             new_events.append(new_event)
             if _syst.services[_ev.srvc].agents[_ev.agent].out_queue.empty():
