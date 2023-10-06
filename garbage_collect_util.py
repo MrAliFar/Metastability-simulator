@@ -7,7 +7,7 @@ import operating_system_utils
 
 srvc_rate_cost = 1
 agent_max_garbage = 10
-garbage_collect_on = True
+garbage_collect_on = False
 
 ###Simulate a working garbage collector 
 """

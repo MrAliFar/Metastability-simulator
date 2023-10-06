@@ -10,9 +10,9 @@ fi
 cd ..
 
 LEN=20
-for i in {50..250}
+for i in {200..250}
 do
-    for j in {1..5}
+    for j in {1..20}
     do
     python3 sim.py \
 --exp_no 1 \

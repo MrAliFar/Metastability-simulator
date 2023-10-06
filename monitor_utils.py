@@ -4,6 +4,7 @@ import logging as lg
 import request_utils
 import operating_system_utils
 import backoff_utils
+import system_utils
 
 
 
@@ -22,28 +23,28 @@ class monitor:
         self.agent_list = []
         self.req_id_tracker = 9999 #set large to not duplicate with agents' id
         self.active = True
-        
+        self.record = []
+        self.record_in_num = [] ## currently setin the form of [ [served_req_num, retried_req_num at time x], [served_req_num, retried_req_num at time x+k], ...]
         
         for _service in _services:
+            num_agt = len(_service.agents)
             templist1 = []
-            tempdic1 = dict()
-            tempdic2 = dict()
-            for _theagent in _service.agents:
-                templist1.append(_theagent.id)
-                tempdic1[_theagent] = False
-                tempdic2[_theagent] = False
+            tempdic1 = []
+            tempdic2 = []
+            for _theagent in range(num_agt):
+                templist1.append(_service.agents[_theagent].id)
+                tempdic1.append(monitor_info.create_default_monitor_info(_service, _theagent, -1))
+                tempdic2.append([])
             self.topology.append(templist1)
             self.respond_status.append(tempdic1)
             self.current_reqs.append(tempdic2)
 
-        
-        
-    
     def start_new_ping_round(self, _syst, _current_timeslot):
         """
         routinely called to give a conclusion of current agents status
-        ////currently only called when initializing the system
         """
+        if not self.active:
+            return
         self.init_ts = _current_timeslot
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
@@ -53,8 +54,10 @@ class monitor:
     def start_new_heartbeat_round(self, _syst, _current_timeslot):
         """
         routinely called to give a conclusion of current agents status
-        ////currently only called when initializing the system
         """
+        if not self.active:
+            return
+        self.store_info()
         self.init_ts = _current_timeslot
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
@@ -90,11 +93,34 @@ class monitor:
             _info = _request.monitor_info
             lg.info("monitor response get" )
             lg.info(str(_info))
-            if _info.init_time == self.init_check_ts:
-                self.respond_status[_info.from_ser][_info.from_agt] = _info
+            # if _info.init_time == self.init_check_ts:
+            self.respond_status[_info.from_ser][_info.from_agt] = _info
             self.active_monitor_control(_syst, _info)
         return
     
+    def store_info(self):
+        templist = []
+        served_req_dif = 0
+        retried_req_dif = 0
+        lastelem = []
+        if(len(self.record) > 1 ):
+            lastelem = self.record[len(self.record)-1]
+        for i in range(len(self.respond_status)):
+            templist.append(self.respond_status[i].copy())
+            for j in range( len(self.respond_status[i])):
+                served_req_dif +=  self.respond_status[i][j].responded_req_num
+                retried_req_dif += self.respond_status[i][j].retried_req_num
+                if(len(self.record) > 1 ):
+                    served_req_dif -= lastelem[i][j].responded_req_num
+                    retried_req_dif == lastelem[i][j].retried_req_num
+                    
+        print("new round, dif is ") 
+        print( served_req_dif)
+        print( retried_req_dif)
+        
+        self.record.append(templist)
+        
+        return
     
     def process_monitor_req(self, _ev, _syst, _req, _cur_time):
         """
@@ -138,9 +164,9 @@ class monitor:
         
     def check_busyness(self, _info):
         """check if the given info shows sign that they are busy"""
-        if(_info.memory_ratio > 0.5):
+        if(_info.memory_ratio > 0.7):
             return True
-        if(_info.in_queue_ratio > 0.5):
+        if(_info.in_queue_ratio > 0.7):
             return True
         return False
 class monitor_info:
@@ -154,6 +180,8 @@ class monitor_info:
         self.from_ser = 0
         self.from_agt = 0
         self.arrive_time = 0
+        self.responded_req_num =0
+        self.retried_req_num =0
         
     def create_default_monitor_info( _from_ser, _from_agt, _time):
         _info = monitor_info()
@@ -172,6 +200,8 @@ class monitor_info:
         _info.init_time = init_time
         _info.arrive_time = arrive_time
         _info.memory_ratio = float(len(_agent.pending_bag))/_agent.pending_bag_cap
+        _info.responded_req_num =  _agent.responded_reqs
+        _info.dropped_req_num = _agent.retried_reqs
         return _info
         
     def __str__(self):
