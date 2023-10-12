@@ -195,6 +195,8 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
     #### Select a random agent from the corresponding service.
     agt_ids = list(range(len(_syst.services[_ev.request.pattern[0]].agents)))
     agt_id = choice(agt_ids)
+    if not _syst.random:
+        agt_id = _ev.request.syst_id % (len(_syst.services[_ev.request.pattern[0]].agents))
             
     if _cur_time + _network_delay > _sim_len-1:
         #### -1 designates that the event belongs to a time after the simulation
@@ -454,13 +456,22 @@ def handle_send_event(_ev, _syst, _network_delay, _sim_len):
             req = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.get()
             req.hop = req.hop + 1
             if req.type == request_utils.EXTERNAL:
+                if _syst.random:
                 #lg.info(f"send event - time is {_ev.time} - pattern is {req.pattern} - hop is {req.hop} - srvc is {_ev.srvc}")
-                new_event = event(RECEIVING_PRIORITY,
-                                _ev.time + _network_delay,
-                                RECEIVE,
-                                req.pattern[req.hop],
-                                "Random",
-                                req)
+                    new_event = event(RECEIVING_PRIORITY,
+                                    _ev.time + _network_delay,
+                                    RECEIVE,
+                                    req.pattern[req.hop],
+                                    "Random",
+                                    req)
+                else:
+                    agt_id = req.syst_id % len(_syst.services[req.pattern[req.hop]].agents)
+                    new_event = event(RECEIVING_PRIORITY,
+                                    _ev.time + _network_delay,
+                                    RECEIVE,
+                                    req.pattern[req.hop],
+                                    agt_id,
+                                    req)
             elif req.type == request_utils.ACK:
                 #lg.info(f"Sending ack - srvc is {req.pattern[req.hop]} - agent is {req.origin}")
                 new_event = event(RECEIVING_PRIORITY,

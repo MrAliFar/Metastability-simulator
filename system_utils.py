@@ -22,6 +22,7 @@ class system:
         self.events = []
         self.served_monitor_reqs = []
         self.time = 0
+        self.random = True
 
     
     def create_topology(self):
@@ -104,6 +105,7 @@ class agent:
         self.acked_reqs = dict()
         self.served_monitor_req = 0
         #### Variable used for garbage_collect_util
+        self.garbage_collect = False
         self.garbage_counter = 0
 
 def generate_system(_len):

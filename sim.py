@@ -21,6 +21,9 @@ def start_sim(args: argparse.Namespace):
     #### Initiate the system
     syst = system_utils.generate_system(args.sim_len)
     events = syst.events
+    if args.load == "LOAD_SHOCK_STATIC":
+        print("make system non random")
+        syst.random = False
     #### Generate the client requests
     reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
     debug_utils.print_unwrapped(reqs)
@@ -87,7 +90,7 @@ def start_sim(args: argparse.Namespace):
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)
     ##### To clear the contents of the file:
-    # log_file = open("log.txt", 'w')
+    log_file = open("log.txt", 'w')
     # log_file.close()
     lg.basicConfig(filename="log.txt", format = "%(filename)s:%(lineno)d %(message)s", level = lg.DEBUG)
     
@@ -183,6 +186,10 @@ if __name__ == "__main__":
                         type=int,
                         required=True,
                         help="How often monitor takes action.")
+    parser.add_argument('--garbage_collect',
+                        type=bool,
+                        required=True,
+                        help="Whether agents need to perform garbage collect.")
 
     args = parser.parse_args()
     #network_delay = 1

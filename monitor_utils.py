@@ -105,18 +105,22 @@ class monitor:
         lastelem = []
         if(len(self.record) > 1 ):
             lastelem = self.record[len(self.record)-1]
+        
+        # print("new round, dif is ") 
         for i in range(len(self.respond_status)):
             templist.append(self.respond_status[i].copy())
             for j in range( len(self.respond_status[i])):
+                # print(j ,"agt retry" , self.respond_status[i][j].retried_req_num)
                 served_req_dif +=  self.respond_status[i][j].responded_req_num
                 retried_req_dif += self.respond_status[i][j].retried_req_num
                 if(len(self.record) > 1 ):
                     served_req_dif -= lastelem[i][j].responded_req_num
-                    retried_req_dif == lastelem[i][j].retried_req_num
-                    
-        print("new round, dif is ") 
-        print( served_req_dif)
-        print( retried_req_dif)
+                    retried_req_dif -= lastelem[i][j].retried_req_num
+                # print( str(retried_req_dif) +"   "+ str(j))
+        lg.info(served_req_dif)
+        lg.info(retried_req_dif)
+        # print( served_req_dif)
+        # print( retried_req_dif)
         
         self.record.append(templist)
         
@@ -201,7 +205,8 @@ class monitor_info:
         _info.arrive_time = arrive_time
         _info.memory_ratio = float(len(_agent.pending_bag))/_agent.pending_bag_cap
         _info.responded_req_num =  _agent.responded_reqs
-        _info.dropped_req_num = _agent.retried_reqs
+        # print("num of retried is " + str(_agent.retried_reqs))
+        _info.retried_req_num = _agent.retried_reqs
         return _info
         
     def __str__(self):

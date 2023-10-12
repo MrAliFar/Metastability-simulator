@@ -12,7 +12,7 @@ python3 sim.py \
 --plot_dropped 0 \
 --plot_receive_dropped 0 \
 --plot_pending_dropped 0 \
---plot_served 1 \
+--plot_served 0 \
 --plot_responded 1 \
 --plot_retried 1 \
 --plot_failures 0 \
@@ -21,3 +21,4 @@ python3 sim.py \
 --plot_enabled 1 \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
+--garbage_collect True \

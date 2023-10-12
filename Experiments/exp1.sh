@@ -10,7 +10,7 @@ fi
 cd ..
 
 LEN=20
-for i in {200..250}
+for i in {100..250}
 do
     for j in {1..20}
     do
