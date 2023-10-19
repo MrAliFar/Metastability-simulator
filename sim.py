@@ -24,6 +24,11 @@ def start_sim(args: argparse.Namespace):
     if args.load == "LOAD_SHOCK_STATIC":
         print("make system non random")
         syst.random = False
+    for _service in syst.services:
+        for _agent in _service.agents:
+            print(args.garbage_collect)
+            print(args.garbage_collect == 1)
+            _agent.garbage_collect = (args.garbage_collect == 1)
     #### Generate the client requests
     reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
     debug_utils.print_unwrapped(reqs)
@@ -187,7 +192,7 @@ if __name__ == "__main__":
                         required=True,
                         help="How often monitor takes action.")
     parser.add_argument('--garbage_collect',
-                        type=bool,
+                        type= int,
                         required=True,
                         help="Whether agents need to perform garbage collect.")
 

@@ -7,7 +7,6 @@ import operating_system_utils
 
 srvc_rate_cost = 1
 agent_max_garbage = 10
-garbage_collect_on = False
 
 ###Simulate a working garbage collector 
 """
@@ -22,8 +21,10 @@ def start_garbage_collect(_agent):
     
 
 def check_garbage_status(_agent):
-    if not garbage_collect_on:
+    # print(_agent.garbage_collect)
+    if not _agent.garbage_collect:
         return
+    # print("gc called")
     if _agent.garbage_counter >= agent_max_garbage:
         start_garbage_collect(_agent)
 

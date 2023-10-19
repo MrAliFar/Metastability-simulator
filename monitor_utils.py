@@ -22,7 +22,7 @@ class monitor:
         self.init_check_ts = 0
         self.agent_list = []
         self.req_id_tracker = 9999 #set large to not duplicate with agents' id
-        self.active = True
+        self.active = False
         self.record = []
         self.record_in_num = [] ## currently setin the form of [ [served_req_num, retried_req_num at time x], [served_req_num, retried_req_num at time x+k], ...]
         

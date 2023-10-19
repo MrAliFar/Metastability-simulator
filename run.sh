@@ -21,4 +21,4 @@ python3 sim.py \
 --plot_enabled 1 \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
---garbage_collect True \
+--garbage_collect 1 \
