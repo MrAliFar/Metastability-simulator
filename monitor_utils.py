@@ -23,6 +23,7 @@ class monitor:
         self.agent_list = []
         self.req_id_tracker = 9999 #set large to not duplicate with agents' id
         self.active = False
+        self.active_control = 0
         self.record = []
         self.record_in_num = [] ## currently setin the form of [ [served_req_num, retried_req_num at time x], [served_req_num, retried_req_num at time x+k], ...]
         
@@ -142,8 +143,16 @@ class monitor:
         # If the monitor is actively in load control, modify timout for corresponding notes
         if(self.active == False):
             return
-        
-        if(self.check_busyness(_info)):
+        if(self.active_control == 0):
+        ### active monitor but no active control
+            return
+        is_busy = False
+        if(self.active_control == 1):
+            is_busy = self.check_busyness_1(_info)
+        if(self.active_control == 2):
+            is_busy = self.check_busyness_2(_info)
+            
+        if(is_busy):
             if(_info.from_ser == _syst.monitor_address[0] and _info.from_agt == _syst.monitor_address[1]):
                 backoff_utils.timeout_backoff_t( _info.from_ser,_info.from_agt, _syst)
             else:
@@ -166,13 +175,25 @@ class monitor:
             # print("get a change req")
             monitor_change.process_monitor_change(_syst, _req.monitor_change)
         
-    def check_busyness(self, _info):
-        """check if the given info shows sign that they are busy"""
-        if(_info.memory_ratio > 0.7):
+    def check_busyness_1(self, _info):
+        ### """check if the given info shows sign that they are busy"""
+        if(_info.memory_ratio > 0.8):
             return True
-        if(_info.in_queue_ratio > 0.7):
+
+        return False
+    
+    def check_busyness_2(self, _info):
+        if(_info.in_queue_ratio > 0.8):
             return True
         return False
+    
+    def check_busyness_3(self, _info):
+        ### try to check tail laentency for each agent
+        if(_info.out_queue_ratio > 0.8):
+            return
+        return False
+        
+        
 class monitor_info:
     def __init__(self):
         self.in_queue_size = 0

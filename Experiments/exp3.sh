@@ -1,7 +1,7 @@
 !#/bin/bash
 !#/bin/bash
 
-FILE=../Experiment_results/exp2.txt
+FILE=../Experiment_results/exp3.txt
 if [ -f "$FILE" ]; then
     rm $FILE
 else
@@ -10,18 +10,17 @@ fi
 
 cd ..
 
-for i in {2..10}
+
+for j in {6..20}
 do
-    for j in {6..20}
-    do
-        python3 change_config1.py \
---default_load $i \
+    python3 change_config1.py \
+--default_load 4 \
 --spike_load $j 
 
         for k in {1..10}
         do
         python3 sim.py \
---exp_no 2 \
+--exp_no 4 \
 --input_duration 200 \
 --sim_len 200 \
 --num_reqs 200 \
@@ -41,23 +40,22 @@ do
 --plot_enabled 0 \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
---garbage_collect 1 
-        done
+--garbage_collect 1 \
+--controller 0 
     done
 done
 
-for i in {2..10}
+
+for j in {6..20}
 do
-    for j in {6..20}
-    do
-    python3 change_config1.py \
---default_load $i \
+python3 change_config1.py \
+--default_load 4 \
 --spike_load $j 
 
-        for k in {1..10}
-        do
-        python3 sim.py \
---exp_no 2 \
+    for k in {1..10}
+    do
+    python3 sim.py \
+--exp_no 4 \
 --input_duration 200 \
 --sim_len 200 \
 --num_reqs 200 \
@@ -77,8 +75,8 @@ do
 --plot_enabled 0 \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
---garbage_collect 0 
-        done
+--garbage_collect 0 \
+--controller 2 
     done
 done
 

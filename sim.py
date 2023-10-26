@@ -29,6 +29,9 @@ def start_sim(args: argparse.Namespace):
             # print(args.garbage_collect)
             # print(args.garbage_collect == 1)
             _agent.garbage_collect = (args.garbage_collect == 1)
+    if args.controller is not None:
+        syst.monitor.active = (args.controller != -1)
+        
     #### Generate the client requests
     reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
     debug_utils.print_unwrapped(reqs)
@@ -195,6 +198,10 @@ if __name__ == "__main__":
                         type= int,
                         required=True,
                         help="Whether agents need to perform garbage collect.")
+    parser.add_argument('--controller',
+                        type= int,
+                        required=False,
+                        help="controller function is on if input == 1 ")
 
     args = parser.parse_args()
     #network_delay = 1

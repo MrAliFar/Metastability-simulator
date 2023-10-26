@@ -1,1 +1,1 @@
-python3 ./plot_exp2.py
+python3 ./plot_only_exp2.py
