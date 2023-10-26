@@ -3,26 +3,35 @@ import numpy as np
 import argparse
 import logging as lg
 
-def change_agent_config(_mode_to_rep):
-    ###read the content in agent config and reqrite it with mode change to _mode tp rep
-    ##input: "CONST" / "MUL" / "BUCK"
-    ##
-    result = []
-    with  open("./Configs/agents_config.txt", "r") as f:
-        for line in f:
-            temp = line.split(":")
-            temp[-1] = _mode_to_rep
-            tempres = ":".join(temp)
-            result.append (tempres)
+def plot_results(_avg_len):
+    retried_withgc = []
+    responded_withgc = []
+    retried_nogc = []
+    responded_nogc = []
+    ratio_withgc = []
+    ratio_nogc = []
+    with open("../Experiment_results/exp2.txt", "r") as f:
+        content = f.readlines()
+        x = len(content)
+        for i in range(x):
+            line = content[i]
+            if i >= x/2:
+                vals = line.split()
+                retried_withgc.append(float(vals[0]))
+                responded_withgc.append(float(vals[1]))
+                ratio_withgc.append(float(vals[2]))
+            else:
+                vals = line.split()
+                retried_nogc.append(float(vals[0]))
+                responded_nogc.append(float(vals[1]))
+                ratio_nogc.append(float(vals[2]))
+                
     
-    print(result)
-    with  open("./Configs/agents_config.txt", "w") as f:
-        f.write("")
+    plt.ylabel("ratio")
+    plt.plot(ratio_withgc, 'r')
+    plt.plot(ratio_nogc, 'g')
+    plt.show()
     
-    with open("./Configs/agents_config.txt", "a") as f:
-        
-        f.write("\n".join(result))
-         
-           
+    
 if __name__ == "__main__":
-    change_agent_config("MUL")
+    plot_results(0)

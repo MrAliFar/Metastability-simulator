@@ -5,7 +5,7 @@ import request_utils
 import operating_system_utils
 
 
-srvc_rate_cost = 1
+srvc_rate_cost = 2
 agent_max_garbage = 10
 
 ###Simulate a working garbage collector 
