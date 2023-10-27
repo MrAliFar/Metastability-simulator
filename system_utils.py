@@ -107,6 +107,8 @@ class agent:
         #### Variable used for garbage_collect_util
         self.garbage_collect = False
         self.garbage_counter = 0
+        #### store RTT for tail lantency
+        self.rtts = []
 
 def generate_system(_len):
     """

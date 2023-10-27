@@ -5,6 +5,7 @@ import request_utils
 import operating_system_utils
 import backoff_utils
 import system_utils
+import heapq
 
 
 
@@ -23,7 +24,7 @@ class monitor:
         self.agent_list = []
         self.req_id_tracker = 9999 #set large to not duplicate with agents' id
         self.active = False
-        self.active_control = 0
+        self.active_control = -1
         self.record = []
         self.record_in_num = [] ## currently setin the form of [ [served_req_num, retried_req_num at time x], [served_req_num, retried_req_num at time x+k], ...]
         
@@ -151,6 +152,10 @@ class monitor:
             is_busy = self.check_busyness_1(_info)
         if(self.active_control == 2):
             is_busy = self.check_busyness_2(_info)
+        if(self.active_control == 3):
+            is_busy = self.check_busyness_3(_info)
+        if(self.active_control == 4):
+            is_busy = self.check_busyness_4(_info)
             
         if(is_busy):
             if(_info.from_ser == _syst.monitor_address[0] and _info.from_agt == _syst.monitor_address[1]):
@@ -190,7 +195,15 @@ class monitor:
     def check_busyness_3(self, _info):
         ### try to check tail laentency for each agent
         if(_info.out_queue_ratio > 0.8):
-            return
+            return True
+        return False
+    
+    def check_busyness_4(self, _info):
+        ### try to check tail laentency for each agent
+        if len(self.record) > 1 : 
+            lastelem = self.record[len(self.record)-1]
+            if lastelem[_info.from_ser][_info.from_agt].tail_latency *1.2 < _info.tail_latency:
+                return True
         return False
         
         
@@ -207,6 +220,7 @@ class monitor_info:
         self.arrive_time = 0
         self.responded_req_num =0
         self.retried_req_num =0
+        self.tail_latency = 0
         
     def create_default_monitor_info( _from_ser, _from_agt, _time):
         _info = monitor_info()
@@ -228,6 +242,25 @@ class monitor_info:
         _info.responded_req_num =  _agent.responded_reqs
         # print("num of retried is " + str(_agent.retried_reqs))
         _info.retried_req_num = _agent.retried_reqs
+        
+        templist = _agent.rtts
+        # _agent.rtts = []
+        for _pends in _agent.pending_bag:
+            templist.append( _pends.time_slot - arrive_time)
+        
+        heapq.heapify(templist)
+        tail_latency = 0
+        count = int(_agent.responded_reqs / 20)
+        for i in range( count ):
+            if len(templist) != 0 :
+                tail_latency += heapq.heappop(templist)
+            else:
+                count-=1
+        
+        if count != 0:
+            tail_latency /= count
+        _info.tail_latency = tail_latency
+        
         return _info
         
     def __str__(self):

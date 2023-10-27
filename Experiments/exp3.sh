@@ -1,7 +1,7 @@
 !#/bin/bash
 !#/bin/bash
 
-FILE=../Experiment_results/exp3.txt
+FILE=../Experiment_results/exp4.txt
 if [ -f "$FILE" ]; then
     rm $FILE
 else
@@ -14,7 +14,7 @@ cd ..
 for j in {6..20}
 do
     python3 change_config1.py \
---default_load 4 \
+--default_load 3 \
 --spike_load $j 
 
         for k in {1..10}
@@ -40,7 +40,7 @@ do
 --plot_enabled 0 \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
---garbage_collect 1 \
+--garbage_collect 0 \
 --controller 0 
     done
 done
@@ -49,7 +49,7 @@ done
 for j in {6..20}
 do
 python3 change_config1.py \
---default_load 4 \
+--default_load 3 \
 --spike_load $j 
 
     for k in {1..10}
@@ -76,7 +76,7 @@ python3 change_config1.py \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
 --garbage_collect 0 \
---controller 2 
+--controller 2
     done
 done
 

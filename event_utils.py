@@ -371,6 +371,7 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
                                 _syst.responded_reqs_ids[req.syst_id] = True
                                 _syst.services[_ev.srvc].responded_reqs += 1
                                 _syst.services[_ev.srvc].agents[_ev.agent].responded_reqs += 1
+                                _syst.services[_ev.srvc].agents[_ev.agent].rtts.append(req.time_slot - _cur_time) ### use negative result here for minheap 
                             #### TODO: Check this!
                             
                             del req

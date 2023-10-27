@@ -31,6 +31,7 @@ def start_sim(args: argparse.Namespace):
             _agent.garbage_collect = (args.garbage_collect == 1)
     if args.controller is not None:
         syst.monitor.active = (args.controller != -1)
+        syst.monitor.active_control = args.controller
         
     #### Generate the client requests
     reqs = client_utils.issue_client_requests(args.input_duration, args.num_reqs, args.load)
