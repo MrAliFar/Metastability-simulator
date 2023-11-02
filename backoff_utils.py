@@ -33,7 +33,7 @@ def timeout_backoff_t(_serv, _agent, _syst):
             return 0
         else:
             """timeout must be at least in the future"""
-            _syst.services[_ev.srvc].agents[_ev.agent].timeout_bucket -= 1
+            _syst.services[_serv].agents[_agent].timeout_bucket -= 1
 
 
 
