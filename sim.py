@@ -91,10 +91,16 @@ def start_sim(args: argparse.Namespace):
     else:
         slope_responded, slope_retried = measurement_utils.is_metastable(syst, 1)
     if args.exp_no > 0:
+        file_name = "./Experiment_results/exp"+str(args.exp_no)+".txt"
+        newstring = str(slope_retried) + " " + str(slope_responded) + " "
         if not slope_responded == 0:
-            template_utils.write_to_file("./Experiment_results/exp"+str(args.exp_no)+".txt", str(slope_retried) + " " + str(slope_responded) + " " + str(slope_retried / slope_responded) + "\n")
+            newstring +=  str(slope_retried / slope_responded) 
         else:
-            template_utils.write_to_file("./Experiment_results/exp"+str(args.exp_no)+".txt", str(slope_retried) + " " + str(slope_responded) + " " + str(-1) + "\n")
+            newstring +=  str(-1) 
+        newstring += " " + str(len(reqs))+ " " + str(syst.responded_reqs[len(syst.responded_reqs) - 1]) + " " + str(syst.retried_reqs[len(syst.retried_reqs) - 1])
+        newstring += "\n"
+        template_utils.write_to_file(file_name, newstring)
+        
 
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)

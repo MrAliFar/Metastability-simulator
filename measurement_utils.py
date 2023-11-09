@@ -15,3 +15,8 @@ def is_metastable(_syst, _time):
         length_ret += 1
     lg.warning(f"The average slope of retried_reqs is: {sum_ret / length_ret}")
     return sum_res / length_res, sum_ret / length_ret
+
+def system_metric(_syst):
+    sim_len = len(_syst.responded_reqs)
+    
+    return _syst.responded_reqs[sim_len - 1], 

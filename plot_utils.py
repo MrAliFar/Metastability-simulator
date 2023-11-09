@@ -50,3 +50,4 @@ def plot_measurements(_syst, args):
         plot_list(_syst.served_monitor_reqs, "Monitor", "D")
         plt.legend()
         plt.show()
+        plt.savefig("result_for_current_run")

@@ -14,7 +14,7 @@ def plot_results( spike_start, spike_end):
         content = f.readlines()
         count = 0
         len_y = spike_end - spike_start
-        len_rand = 10
+        len_rand = 20
         y_index = np.zeros( len_y*len_rand)
         ratio_withcontrol = np.zeros(len_y*len_rand)
         ratio_nocontrol = np.zeros(len_y*len_rand)
