@@ -260,6 +260,8 @@ class monitor_info:
         if count != 0:
             tail_latency /= count
         _info.tail_latency = tail_latency
+        _agent.tail_lantency = tail_latency
+
         
         return _info
         
