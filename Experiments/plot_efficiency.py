@@ -5,13 +5,15 @@ import argparse
 import logging as lg
 
 def plot_results(default_start, default_end, spike_start, spike_end):
-    retried_withgc = []
-    responded_withgc = []
-    retried_nogc = []
-    responded_nogc = []
     ratio_withgc = []
     ratio_nogc = []
-    with open("../Experiment_results/exponential_1_2.txt", "r") as f:
+    filename1 = "exponential_1_2.txt"
+    filename2 = "exponential0_4.txt"
+    filename3 = "multiagent_add_testrandomness.txt"
+    filename4 = "multi-agent_controller2_3.txt"
+    filename5 = "multi_agent.txt"
+    filename6 = "multiagent_add_testrandomness.txt"
+    with open("../Experiment_results/" + filename1, "r") as f:
         content = f.readlines()
         count = 0
         len_x = default_end - default_start
@@ -50,8 +52,8 @@ def plot_results(default_start, default_end, spike_start, spike_end):
                     count += 1
                 ratio_nogc[i][j] = avg_ratio
     
-    ratio_dif = (ratio_nogc - ratio_withgc)/ len_rand
-    
+    ratio_dif = ratio_withgc/ len_rand
+    ratio2 = ratio_nogc/ len_rand
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     
     ax.set_zlabel('efficiency')
