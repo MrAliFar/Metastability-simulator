@@ -257,10 +257,12 @@ class monitor_info:
             else:
                 count-=1
         
+        tail_latency = -tail_latency
         if count != 0:
             tail_latency /= count
         _info.tail_latency = tail_latency
-        _agent.tail_lantency = tail_latency
+        _agent.tail_latency_list.append(tail_latency)
+        _agent.tail_latency_x_list.append(arrive_time)
 
         
         return _info

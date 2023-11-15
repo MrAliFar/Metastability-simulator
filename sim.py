@@ -2,6 +2,7 @@ import numpy as np
 import logging as lg
 from queue import Queue
 import argparse
+import matplotlib.pyplot as plt
 
 import client_utils
 import event_utils

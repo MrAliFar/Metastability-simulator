@@ -110,6 +110,8 @@ class agent:
         #### store RTT for tail lantency, taillantency will be updated everytime info is generated
         self.rtts = []
         self.tail_latency = 0
+        self.tail_latency_list = []
+        self.tail_latency_x_list = []
 
 def generate_system(_len):
     """

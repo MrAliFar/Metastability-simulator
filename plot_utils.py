@@ -8,6 +8,9 @@ def plot_list(_lst, _label, _marker):
     x = list(range(len(_lst)))
     plt.plot(x, _lst, label=_label, marker=_marker, markersize=2)
     #plt.show()
+    
+def plot_x_y(x, y, name):
+    plt.plot(x,y,label = name, color="b")
 
 def plot_load_shock(_lst):
     load = [_lst[0] for _ in range(_lst[1])]
@@ -47,7 +50,18 @@ def plot_measurements(_syst, args):
         if args.issue_failures and args.plot_failures:
             mitigations = template_utils.parse_mitigations()
             plt.axvline(x=mitigations[0][2], color="g")
-        plot_list(_syst.served_monitor_reqs, "Monitor", "D")
+        # plot_list(_syst.served_monitor_reqs, "Monitor", "D")
+        
+        new_x = []
+        new_y = []
+        for _serv in _syst.services:
+            for _agt in _serv.agents:
+                plot_x_y(_agt.tail_latency_x_list, _agt.tail_latency_list, "tail_latency")
+                # new_x += _agt.tail_latency_x_list
+                # new_y += _agt.tail_latency_list
+        # print(new_x)
+        # print(new_y)
+        # plot_x_y(new_x, new_y, "tail_latency")
         plt.legend()
         plt.show()
         plt.savefig("result_for_current_run")
