@@ -59,9 +59,8 @@ def timeout_change_newtimeslot( _syst):
 def request_success_timeout_change(_ev, _syst):
     if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "BUCK":
         _syst.services[_ev.srvc].agents[_ev.agent].timeout_bucket +=1
-    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "EXP":
-        if _syst.services[_ev.srvc].agents[_ev.agent].timeout > 5: 
-            _syst.services[_ev.srvc].agents[_ev.agent].timeout -= 3
+    if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "EXP": 
+        _syst.services[_ev.srvc].agents[_ev.agent].timeout = max(5, _syst.services[_ev.srvc].agents[_ev.agent].timeout -3)
     if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "RAND":
         ##currently too small decrease so actually slowing down agents
         if _syst.services[_ev.srvc].agents[_ev.agent].timeout > 5: 

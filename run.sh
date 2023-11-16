@@ -6,7 +6,7 @@ python3 sim.py \
 --sim_len 200 \
 --num_reqs 200 \
 --network_delay 2 \
---load LOAD_SHOCK \
+--load LOAD_SHOCK_STATIC \
 --issue_failures 0 \
 --issue_mitigations 0 \
 --plot_dropped 0 \

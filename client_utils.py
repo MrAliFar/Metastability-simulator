@@ -63,17 +63,17 @@ def generate_requests(_policy):
         trigger = template_utils.parse_trigger()[0]
         for ts in range(trigger[1]):
             for _ in range(trigger[0]):
-                pattern_index = _ % len(req_patterns)
+                pattern_index = syst_id_cntr % len(req_patterns)
                 reqs.append(request_utils.create_request(request_utils.EXTERNAL, req_patterns[pattern_index], req_acks[pattern_index], -1, ts, syst_id_cntr))
                 syst_id_cntr += 1
         for ts in range(trigger[1], trigger[2]):
             for _ in range( trigger[4]):
-                pattern_index = _ % len(req_patterns)
+                pattern_index = syst_id_cntr % len(req_patterns)
                 reqs.append(request_utils.create_request(request_utils.EXTERNAL, req_patterns[pattern_index], req_acks[pattern_index], -1, ts, syst_id_cntr))
                 syst_id_cntr += 1
         for ts in range(trigger[2], trigger[3]):
             for _ in range(trigger[0]):
-                pattern_index = _ % len(req_patterns)
+                pattern_index = syst_id_cntr % len(req_patterns)
                 reqs.append(request_utils.create_request(request_utils.EXTERNAL, req_patterns[pattern_index], req_acks[pattern_index], -1, ts, syst_id_cntr))
                 syst_id_cntr += 1
     return reqs

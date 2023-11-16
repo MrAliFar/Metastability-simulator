@@ -35,6 +35,10 @@ class request:
         #### Monitor request related info
         self.monitor_info = None
         self.monitor_change = None
+    
+    def __str__(self): 
+        result = self.type + " syst_id" + str(self.syst_id) + " pattern"+ str(self.pattern)+ " monitor info"+ str(self.monitor_info)
+        return result
 
 def create_request(_type, _pattern, _ack_pattern, _origin, _time_slot, _syst_id):
     """

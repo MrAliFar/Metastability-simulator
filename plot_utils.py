@@ -27,10 +27,14 @@ def plot_trigger_and_measurement(_measurement, _trigger):
 
 def plot_tail_latency(_syst):
     plt.subplot(122)
-    for _serv in _syst.services:
+    
+    for _ in range(1,len(_syst.services)):
+        _serv = _syst.services[_]
         for _agt in _serv.agents:
+            plt.ylabel("tail_latency")
+            plt.xlabel("time")
             plt.plot(_agt.tail_latency_x_list, _agt.tail_latency_list)
-            print(_agt.tail_latency_x_list)
+            # print(_agt.tail_latency_x_list)
             print(_agt.tail_latency_list)
             # new_x += _agt.tail_latency_x_list
             # new_y += _agt.tail_latency_list
@@ -69,5 +73,5 @@ def plot_measurements(_syst, args):
 
         # plot_x_y(new_x, new_y, "tail_latency")
         plt.legend()
-        plt.show()
         plt.savefig("result_for_current_run")
+        plt.show()

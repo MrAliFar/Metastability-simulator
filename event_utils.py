@@ -196,7 +196,7 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
     agt_ids = list(range(len(_syst.services[_ev.request.pattern[0]].agents)))
     agt_id = choice(agt_ids)
     if not _syst.random:
-        agt_id = _ev.request.syst_id % (len(_syst.services[_ev.request.pattern[0]].agents))
+        agt_id = (_ev.request.syst_id // (len(_syst.services))) % (len(_syst.services[_ev.request.pattern[1]].agents))
             
     if _cur_time + _network_delay > _sim_len-1:
         #### -1 designates that the event belongs to a time after the simulation

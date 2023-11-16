@@ -259,7 +259,16 @@ class monitor_info:
         if count != 0:
             tail_latency /= count
         if count == 0 and arrive_time > 40:
-            print("service " + str(_from_ser) + "agt " + str(_from_agt))
+            # print("service " + str(_from_ser) + "agt " + str(_from_agt))
+            print("service " + str(_from_ser) + "agt " + str(_from_agt) + "pending_bag ")
+            for _pends in _agent.pending_bag:
+                print(_pends)
+                print("the timeout of that agent is "+ str(_agent.timeout))
+        if tail_latency > 40:
+            print("service " + str(_from_ser) + "agt " + str(_from_agt) + "pending_bag ")
+            for _pends in _agent.pending_bag:
+                print(_pends)
+                print("the timeout of that agent is "+ str(_agent.timeout))
         _info.tail_latency = tail_latency
         _agent.tail_latency_list.append(tail_latency)
         _agent.tail_latency_x_list.append(arrive_time)
