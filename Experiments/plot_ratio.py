@@ -11,7 +11,7 @@ def plot_results(default_start, default_end, spike_start, spike_end):
     responded_nogc = []
     ratio_withgc = []
     ratio_nogc = []
-    with open("../Experiment_results/exponential_1_2.txt", "r") as f:
+    with open("../Experiment_results/mode_0_4with_multiadd.txt", "r") as f:
         content = f.readlines()
         count = 0
         len_x = default_end - default_start

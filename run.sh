@@ -6,7 +6,7 @@ python3 sim.py \
 --sim_len 200 \
 --num_reqs 200 \
 --network_delay 2 \
---load LOAD_SHOCK_STATIC \
+--load LOAD_SHOCK \
 --issue_failures 0 \
 --issue_mitigations 0 \
 --plot_dropped 0 \
@@ -22,3 +22,5 @@ python3 sim.py \
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
 --garbage_collect 1 \
+--controller 0 \
+--plot_tail_latency 1 \

@@ -22,7 +22,7 @@ class monitor:
         self.current_reqs = []
         self.init_check_ts = 0
         self.agent_list = []
-        self.req_id_tracker = 9999 #set large to not duplicate with agents' id
+        self.req_id_tracker = 19999 #set large to not duplicate with agents' id
         self.active = False
         self.active_control = -1
         self.record = []
@@ -63,8 +63,6 @@ class monitor:
         self.init_ts = _current_timeslot
         for _service in range(len(self.topology)):
             for _agent in range(len(self.topology[_service])):
-                _theagent = _syst.services[_service].agents[_agent]
-                _info = monitor_info.create_monitor_info(_service, _agent, _theagent, _current_timeslot, _current_timeslot)
                 self.current_reqs[_service][_agent] = self.new_monitor_request(_service, _agent, _current_timeslot)
                 operating_system_utils.operating_system.send_monitor_respond(_syst, self.current_reqs[_service][_agent], _current_timeslot,_service, _agent)
 
@@ -243,7 +241,7 @@ class monitor_info:
         # print("num of retried is " + str(_agent.retried_reqs))
         _info.retried_req_num = _agent.retried_reqs
         
-        templist = _agent.rtts
+        templist = _agent.rtts.copy()
         # _agent.rtts = []
         for _pends in _agent.pending_bag:
             templist.append( _pends.time_slot - arrive_time)
@@ -260,6 +258,8 @@ class monitor_info:
         tail_latency = -tail_latency
         if count != 0:
             tail_latency /= count
+        if count == 0 and arrive_time > 40:
+            print("service " + str(_from_ser) + "agt " + str(_from_agt))
         _info.tail_latency = tail_latency
         _agent.tail_latency_list.append(tail_latency)
         _agent.tail_latency_x_list.append(arrive_time)

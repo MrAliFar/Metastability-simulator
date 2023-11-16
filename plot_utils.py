@@ -25,7 +25,19 @@ def plot_trigger_and_measurement(_measurement, _trigger):
     plot_load_shock(_trigger)
     plt.show()
 
+def plot_tail_latency(_syst):
+    plt.subplot(122)
+    for _serv in _syst.services:
+        for _agt in _serv.agents:
+            plt.plot(_agt.tail_latency_x_list, _agt.tail_latency_list)
+            print(_agt.tail_latency_x_list)
+            print(_agt.tail_latency_list)
+            # new_x += _agt.tail_latency_x_list
+            # new_y += _agt.tail_latency_list
+
 def plot_measurements(_syst, args):
+    plt.figure()
+    plt.subplot(121)
     if args.plot_enabled:
         if args.plot_dropped:
             plot_list(_syst.dropped_reqs, "Dropped", "o")
@@ -51,16 +63,10 @@ def plot_measurements(_syst, args):
             mitigations = template_utils.parse_mitigations()
             plt.axvline(x=mitigations[0][2], color="g")
         # plot_list(_syst.served_monitor_reqs, "Monitor", "D")
-        
-        new_x = []
-        new_y = []
-        for _serv in _syst.services:
-            for _agt in _serv.agents:
-                plot_x_y(_agt.tail_latency_x_list, _agt.tail_latency_list, "tail_latency")
-                # new_x += _agt.tail_latency_x_list
-                # new_y += _agt.tail_latency_list
-        # print(new_x)
-        # print(new_y)
+        if args.plot_tail_latency is not None:
+            if args.plot_tail_latency == 1:
+                plot_tail_latency(_syst)
+
         # plot_x_y(new_x, new_y, "tail_latency")
         plt.legend()
         plt.show()

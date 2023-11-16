@@ -4,12 +4,24 @@ import random
 import logging as lg
 def calculate_timeoutslot(_ev, _syst):
     if _syst.services[_ev.srvc].agents[_ev.agent].backoff_behavior == "RAND":
-        return _ev.time + random.randint( 1 , _syst.services[_ev.srvc].agents[_ev.agent].timeout)
+        return _ev.time + random.randint(5 , _syst.services[_ev.srvc].agents[_ev.agent].timeout)
     else:
         return _ev.time + _syst.services[_ev.srvc].agents[_ev.agent].timeout
 
 def timeout_backoff(_ev, _syst):
     timeout_backoff_t(_ev.srvc, _ev.agent, _syst)
+
+def add_timeout_backoff(_ev, _syst):
+    _serv = _ev.srvc
+    _agent = _ev.agent
+    _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout + 4, 30)
+
+def exp_timeout_backoff(_ev, _syst):
+    _serv = _ev.srvc
+    _agent = _ev.agent
+    _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 30)
+
+
     
 def timeout_backoff_t(_serv, _agent, _syst):
     
@@ -25,7 +37,7 @@ def timeout_backoff_t(_serv, _agent, _syst):
     if _syst.services[_serv].agents[_agent].backoff_behavior == "EXP":
         _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 30)
     if _syst.services[_serv].agents[_agent].backoff_behavior == "ADD":
-        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout + 1, 30)
+        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout + 4, 30)
     if _syst.services[_serv].agents[_agent].backoff_behavior == "RAND":
         _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 30)
     if _syst.services[_serv].agents[_agent].backoff_behavior == "BUCK":

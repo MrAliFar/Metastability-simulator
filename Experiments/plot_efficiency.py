@@ -12,8 +12,8 @@ def plot_results(default_start, default_end, spike_start, spike_end):
     filename3 = "multiagent_add_testrandomness.txt"
     filename4 = "multi-agent_controller2_3.txt"
     filename5 = "multi_agent.txt"
-    filename6 = "multiagent_add_testrandomness.txt"
-    with open("../Experiment_results/" + filename1, "r") as f:
+    filename6 = "mode_0_4with_multiadd.txt"
+    with open("../Experiment_results/" + filename6, "r") as f:
         content = f.readlines()
         count = 0
         len_x = default_end - default_start
@@ -62,7 +62,7 @@ def plot_results(default_start, default_end, spike_start, spike_end):
     
     
     ax.plot_surface(x_index, y_index, ratio_dif,cmap = cm.Blues, linewidth=0, antialiased=False)
-    # ax.plot_surface(x_index, y_index, ratio_withgc, linewidth=0, antialiased=False)
+    ax.plot_surface(x_index, y_index, ratio2,cmap = cm.Reds, linewidth=0, antialiased=False)
     plt.savefig("efficiency")
     
     plt.show()

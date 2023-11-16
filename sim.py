@@ -209,7 +209,11 @@ if __name__ == "__main__":
     parser.add_argument('--controller',
                         type= int,
                         required=False,
-                        help="controller function is on if input == 1 ")
+                        help="controller function is on if input != 1 ")
+    parser.add_argument('--plot_tail_latency',
+                        type= int,
+                        required=False,
+                        help="plot tail latency if input == 1")
 
     args = parser.parse_args()
     #network_delay = 1
