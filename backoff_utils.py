@@ -35,7 +35,8 @@ def timeout_backoff_t(_serv, _agent, _syst):
         - the next timeout slot number
     """
     if _syst.services[_serv].agents[_agent].backoff_behavior == "EXP":
-        _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout * 2, 30)
+        time = (_syst.services[_serv].agents[_agent].timeout - 4)*2 + 4
+        _syst.services[_serv].agents[_agent].timeout = min(time, 30)
     if _syst.services[_serv].agents[_agent].backoff_behavior == "ADD":
         _syst.services[_serv].agents[_agent].timeout = min(_syst.services[_serv].agents[_agent].timeout + 4, 30)
     if _syst.services[_serv].agents[_agent].backoff_behavior == "RAND":

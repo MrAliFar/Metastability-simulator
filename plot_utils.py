@@ -73,5 +73,6 @@ def plot_measurements(_syst, args):
 
         # plot_x_y(new_x, new_y, "tail_latency")
         plt.legend()
-        plt.savefig("result_for_current_run")
-        plt.show()
+        if args.exp_no == 0:
+            plt.savefig("result_for_current_run")
+            plt.show()
