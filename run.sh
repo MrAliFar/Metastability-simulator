@@ -1,12 +1,12 @@
 !#/bin/bash
 
 python3 sim.py \
---exp_no 0 \
+--exp_no 1 \
 --input_duration 200 \
 --sim_len 200 \
 --num_reqs 200 \
 --network_delay 2 \
---load LOAD_SHOCK_STATIC \
+--load LOAD_SHOCK \
 --issue_failures 0 \
 --issue_mitigations 0 \
 --plot_dropped 0 \

@@ -102,6 +102,17 @@ def start_sim(args: argparse.Namespace):
         newstring += "\n"
         template_utils.write_to_file(file_name, newstring)
         
+        file_name = "./Experiment_results/exp"+str(args.exp_no)+"_tail_latency"+".txt"
+        newstring = ""
+        for _ in range(1,len(syst.services)):
+            _serv = syst.services[_]
+            for _agt in _serv.agents:
+                newstring += str(_agt.tail_latency_x_list)
+                newstring += "|"
+                newstring += str(_agt.tail_latency_list)
+                newstring += "\n"
+        template_utils.write_to_file(file_name, newstring)
+        
 
 if __name__ == "__main__":
     #lg.basicConfig(format = "%(asctime)s %(filename)s:%(lineno)d %(message)s",level = lg.DEBUG)

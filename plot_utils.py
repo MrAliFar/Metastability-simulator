@@ -35,7 +35,7 @@ def plot_tail_latency(_syst):
             plt.xlabel("time")
             plt.plot(_agt.tail_latency_x_list, _agt.tail_latency_list)
             # print(_agt.tail_latency_x_list)
-            print(_agt.tail_latency_list)
+            # print(_agt.tail_latency_list)
             # new_x += _agt.tail_latency_x_list
             # new_y += _agt.tail_latency_list
 

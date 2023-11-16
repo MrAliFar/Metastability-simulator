@@ -196,7 +196,8 @@ def handle_client_request(_ev, _syst, _cur_time, _network_delay, _sim_len):
     agt_ids = list(range(len(_syst.services[_ev.request.pattern[0]].agents)))
     agt_id = choice(agt_ids)
     if not _syst.random:
-        agt_id = (_ev.request.syst_id // (len(_syst.services))) % (len(_syst.services[_ev.request.pattern[1]].agents))
+        # print("len =" + str(len(_syst.services[_ev.request.pattern[0]].agents)))
+        agt_id = (_ev.request.syst_id // (len(_syst.services)-1)) % (len(_syst.services[_ev.request.pattern[0]].agents))
             
     if _cur_time + _network_delay > _sim_len-1:
         #### -1 designates that the event belongs to a time after the simulation
@@ -388,17 +389,16 @@ def handle_serve_event(_ev, _syst, _cur_time, _sim_len):
         #out_queue_is_full = _syst.services[_ev.srvc].agents[_ev.agent].out_queue.full()
     #### If there are requests remaining in the input queue, the agent should
     #### serve at the next time slot.
-    if not _syst.services[_ev.srvc].agents[_ev.agent].in_queue.empty():
-        if not _ev.time + 1 > _sim_len - 1:
-            if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
-                leftover_serve_event = event(REQUEST_SERVE_PRIORITY,
-                                            _ev.time + 1,
-                                            SERVE,
-                                            _ev.srvc,
-                                            _ev.agent,
-                                            -1)
-                new_events.append(leftover_serve_event)
-                _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time + 1] = True
+    if not _ev.time + 1 > _sim_len - 1:
+        if not _ev.time + 1 in _syst.services[_ev.srvc].agents[_ev.agent].serve_events:
+            leftover_serve_event = event(REQUEST_SERVE_PRIORITY,
+                                        _ev.time + 1,
+                                        SERVE,
+                                        _ev.srvc,
+                                        _ev.agent,
+                                        -1)
+            new_events.append(leftover_serve_event)
+            _syst.services[_ev.srvc].agents[_ev.agent].serve_events[_ev.time + 1] = True
     #### Reset the online serving capacity.
     _syst.services[_ev.srvc].agents[_ev.agent].remaining_srvc = _syst.services[_ev.srvc].agents[_ev.agent].srvc_rate
     return new_events
