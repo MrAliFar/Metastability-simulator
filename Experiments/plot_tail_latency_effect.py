@@ -49,18 +49,20 @@ def plot_results(default_start, default_end, spike_start, spike_end):
                         y_vals = y_vals.split(',')[1:-2]
                     # print(y_vals)
                         y_vals = [eval(i) for i in y_vals]
+                        if len(y_vals) > 0:
                     # # retried_withgc.append(float(vals[0]))
                     # # responded_withgc.append(float(vals[1]))
-                        avg_latency += sum(y_vals) / len(vals)
+                            avg_latency += sum(y_vals) / len(y_vals)
                 throughput_mode2[i][j] = avg_latency / (len_rand *len_agents)
     
     
     fig, (ax1, ax2) = plt.subplots(1, 2,subplot_kw={"projection": "3d"})
-    loc = plticker.MultipleLocator(base=1.0)
-    ax1.xaxis.set_major_locator(loc)
-    ax1.yaxis.set_major_locator(loc)
-    ax2.xaxis.set_major_locator(loc)
-    ax2.yaxis.set_major_locator(loc)
+    loc1 = plticker.MultipleLocator(base=1.0)
+    ax1.xaxis.set_major_locator(loc1)
+    ax1.yaxis.set_major_locator(loc1)
+    loc2 = plticker.MultipleLocator(base=2.0)
+    ax2.xaxis.set_major_locator(loc2)
+    ax2.yaxis.set_major_locator(loc2)
     ax1.set_zlabel('throughput')
     ax1.set_xlabel('default')
     ax1.set_ylabel('spike')
