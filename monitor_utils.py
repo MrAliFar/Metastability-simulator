@@ -298,7 +298,17 @@ class monitor_change:
 
     def process_monitor_change(_syst, _change):
         _agent = _syst.services[_change.target_ser].agents[_change.target_agt]
-        _agent.timeout = max(5,_agent.timeout - _change.backoff)
+        mode = 2
+        match mode:
+            case 0:
+                time = _agent.timeout
+            case 1:
+                time = (_agent.timeout - 4)*2 + 4
+            case 2:
+                time = _agent.timeout + 4
+            case _:
+                return "Something's wrong with the internet"        
+        _agent.timeout = time
         if(_change.drop_pending !=0):
             ### do something
             pass

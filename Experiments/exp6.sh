@@ -42,7 +42,7 @@ do
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
 --garbage_collect 1 \
---controller 1 
+--controller 0 
         done
     done
 done
@@ -79,7 +79,7 @@ do
 --monitor_policy HEART_BEAT \
 --monitor_frequency 5 \
 --garbage_collect 0 \
---controller 1 
+--controller 4 
         done
     done
 done
