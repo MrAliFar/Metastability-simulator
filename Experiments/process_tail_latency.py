@@ -5,7 +5,7 @@ import argparse
 import logging as lg
 
 def process_results(default_start, default_end, spike_start, spike_end):
-    with open("../Experiment_results/exp11_20.txt", "r") as f:
+    with open("../Experiment_results/exp8_00.txt", "r") as f:
         content = f.readlines()
         count = 0
         len_x = default_end - default_start
@@ -15,32 +15,25 @@ def process_results(default_start, default_end, spike_start, spike_end):
         y_index = np.zeros((len_x, len_y))
         throughput_mode1 = np.zeros((len_x, len_y))
         total_efficiency = 0
-        total_latency = 0
         
-        for i in range(len_x):
+        for i in range(3):
             for j in range(len_y):
                 x_index[i][j] = i+default_start
                 y_index[i][j] = j+spike_start
                 avg_ratio = 0
-                avg_latency =0
                 # total_req_num = (i+default_start)* (200-15) + (j+spike_start)*15
                 for k in range(len_rand):
                     line = content[count]
                     vals = line.split()
-                    if(j>3):
                     # retried_withgc.append(float(vals[0]))
                     # responded_withgc.append(float(vals[1]))
-                        avg_ratio += float(vals[4]) / float(vals[3])
-                        avg_latency += float(vals[6])
+                    avg_ratio += float(vals[4]) / float(vals[3])
                     count += 1
                 throughput_mode1[i][j] = avg_ratio /len_rand
                 total_efficiency += avg_ratio /len_rand
-                total_latency += avg_latency /len_rand 
     
-    total_efficiency = total_efficiency / (len_x * 6)
-    total_latency = total_latency / (len_x * 6)
-    print("total efficiency is" + str(total_efficiency))
-    print("total latency is" + str(total_latency))
+    total_efficiency = total_efficiency / (3 * len_y)
+    print(total_efficiency)
     
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     
@@ -57,4 +50,4 @@ def process_results(default_start, default_end, spike_start, spike_end):
     
     
 if __name__ == "__main__":
-    process_results(6,10,6,16)
+    process_results(6,13,6,20)
